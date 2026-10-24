@@ -3,7 +3,7 @@ import { AuthLayout } from "@/components/auth/AuthLayout";
 import { SignupForm } from "@/components/auth/SignupForm";
 
 export const metadata: Metadata = {
-  title: "Create Account | STOREFRONT Luxe E-Commerce",
+  title: "Create Account | STOREFRONT E-Commerce",
   description:
     "Join STOREFRONT today. Enjoy exclusive welcome perks, seamless order tracking, express deliveries, and curated luxury collections.",
 };
