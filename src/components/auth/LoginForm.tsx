@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Mail,
   Lock,
@@ -20,14 +20,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useMutation } from "@tanstack/react-query";
 import { login } from "@/lib/client-api/auth";
 import type { LoginPayload } from "@/lib/client-api/auth/types";
-import { useMe } from "@/hooks/useMe";
 import { useRouter } from "next/navigation";
+import { useAppStore } from "@/store/useAppStore";
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  const { profileQuery } = useMe();
-
+  const {user} = useAppStore();
   const {
     register,
     handleSubmit,
@@ -44,7 +43,10 @@ export function LoginForm() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: (payload: LoginPayload) => login(payload)
+    mutationFn: (payload: LoginPayload) => login(payload),
+    onSuccess: () => {
+      router.push("/");
+    }
   })
 
   const rememberMe = watch("rememberMe");
@@ -60,8 +62,8 @@ export function LoginForm() {
     }`;
 
   useEffect(() => {
-    if(profileQuery.isSuccess) router.push("/")
-  }, [profileQuery.data, profileQuery.isSuccess, router])
+    if(user) router.push("/")
+  }, [user, router]);
 
   return (
     <div className="w-full space-y-5">

@@ -33,13 +33,14 @@ import { useRouter } from "next/navigation";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
+  const clearUser = useAppStore(state => state.clearUser)
   const router = useRouter();
   const { profileQuery } = useMe();
   const user = profileQuery.data?.user;
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSuccess: () => {
-      window.location.reload();
+      clearUser()
       router.push("/login")
     }
   })
