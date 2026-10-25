@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,16 +13,20 @@ import {
   ArrowRight,
   Loader2,
   AlertCircle,
-  CheckCircle2,
 } from "lucide-react";
 import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useMutation } from "@tanstack/react-query";
+import { login } from "@/lib/client-api/auth";
+import type { LoginPayload } from "@/lib/client-api/auth/types";
+import { useMe } from "@/hooks/useMe";
+import { useRouter } from "next/navigation";
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  const router = useRouter();
+  const { profileQuery } = useMe();
 
   const {
     register,
@@ -39,15 +43,14 @@ export function LoginForm() {
     },
   });
 
+  const loginMutation = useMutation({
+    mutationFn: (payload: LoginPayload) => login(payload)
+  })
+
   const rememberMe = watch("rememberMe");
 
   const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true);
-    setSubmitSuccess(null);
-
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    setIsLoading(false);
-    setSubmitSuccess(`Welcome back! Logged in as ${data.email}`);
+    loginMutation.mutate(data)
   };
 
   const getInputClasses = (hasError?: boolean, isPassword?: boolean) =>
@@ -55,6 +58,11 @@ export function LoginForm() {
       ? "border-destructive focus:border-transparent focus:ring-2 focus:ring-destructive/60"
       : "border-border/80 hover:border-zinc-400 dark:hover:border-zinc-600 focus:border-transparent focus:ring-2 focus:ring-primary/70"
     }`;
+
+  useEffect(() => {
+    if(profileQuery.isSuccess)
+    if(profileQuery.isSuccess) router.push("/")
+  }, [profileQuery.data, profileQuery.isSuccess, router])
 
   return (
     <div className="w-full space-y-5">
@@ -66,20 +74,6 @@ export function LoginForm() {
           Enter your credentials to access your StoreFront account
         </p>
       </div>
-
-      <AnimatePresence mode="wait">
-        {submitSuccess && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm flex items-center gap-2.5"
-          >
-            <CheckCircle2 className="size-5 shrink-0" />
-            <p className="font-medium text-xs sm:text-sm">{submitSuccess}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5">
@@ -93,7 +87,7 @@ export function LoginForm() {
               type="email"
               placeholder="Enter email"
               autoComplete="email"
-              disabled={isLoading}
+              disabled={loginMutation.isPending}
               {...register("email")}
               className={getInputClasses(Boolean(errors.email))}
             />
@@ -129,13 +123,13 @@ export function LoginForm() {
               type={showPassword ? "text" : "password"}
               placeholder="Enter password"
               autoComplete="current-password"
-              disabled={isLoading}
+              disabled={loginMutation.isPending}
               {...register("password")}
               className={getInputClasses(Boolean(errors.password), true)}
             />
             <button
               type="button"
-              disabled={isLoading}
+              disabled={loginMutation.isPending}
               onClick={() => setShowPassword(!showPassword)}
               className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground transition-colors"
               title={showPassword ? "Hide password" : "Show password"}
@@ -164,7 +158,7 @@ export function LoginForm() {
             id="remember-me"
             checked={rememberMe}
             onCheckedChange={(checked) => setValue("rememberMe", Boolean(checked))}
-            disabled={isLoading}
+            disabled={loginMutation.isPending}
           />
           <label
             htmlFor="remember-me"
@@ -176,12 +170,12 @@ export function LoginForm() {
 
         <motion.button
           type="submit"
-          disabled={isLoading}
+          disabled={loginMutation.isPending}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
           className="w-full h-12 mt-2 rounded-xl bg-primary text-primary-foreground font-semibold text-sm shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/35 transition-all flex items-center justify-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
         >
-          {isLoading ? (
+          {loginMutation.isPending ? (
             <>
               <Loader2 className="size-4.5 animate-spin" />
               <span>Signing in...</span>
@@ -204,7 +198,7 @@ export function LoginForm() {
 
           <button
             type="button"
-            disabled={isLoading}
+            disabled={loginMutation.isPending}
             className="w-full h-11.5 flex items-center justify-center gap-2.5 rounded-xl border border-border bg-background hover:bg-muted text-foreground text-sm font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
           >
             <svg className="size-4.5 shrink-0" viewBox="0 0 24 24">

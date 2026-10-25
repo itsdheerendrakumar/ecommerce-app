@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import TanstackProvider from "@/components/providers/Tanstack";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -20,7 +21,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={cn("h-full", "antialiased", "font-sans", poppins.variable)}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">{children}</body>
+      <body className="min-h-full flex flex-col bg-background text-foreground">
+        <TanstackProvider>{children}</TanstackProvider>
+      </body>
     </html>
   );
 }

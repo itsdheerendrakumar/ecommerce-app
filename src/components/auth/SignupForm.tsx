@@ -22,17 +22,23 @@ import {
 import { signupSchema, type SignupFormData } from "@/lib/validations/auth";
 import { PasswordStrengthMeter } from "./PasswordStrengthMeter";
 import { Label } from "@/components/ui/label";
+import { useMutation } from "@tanstack/react-query";
+import { signup } from "@/lib/client-api/auth";
+import { SignupPayload } from "@/lib/client-api/auth/types";
+import { useMe } from "@/hooks/useMe";
+import { useRouter } from "next/navigation";
 
 export function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  const router = useRouter();
+  const { profileQuery } = useMe();
 
   const {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors },
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
@@ -46,6 +52,16 @@ export function SignupForm() {
     },
   });
 
+  const signupMutation = useMutation({
+    mutationFn: (payload: SignupPayload) => signup(payload),
+    onSuccess: () => {
+      // reset()
+    },
+    onError: () => {
+
+    }
+  })
+
   const passwordValue = watch("password") || "";
 
   const [maxDobDate, setMaxDobDate] = useState<string | undefined>(undefined);
@@ -56,13 +72,13 @@ export function SignupForm() {
     setMaxDobDate(date.toISOString().split("T")[0]);
   }, []);
 
-  const onSubmit = async (data: SignupFormData) => {
-    setIsLoading(true);
-    setSubmitSuccess(null);
+  useEffect(() => {
+    if(profileQuery.isSuccess)
+    if(profileQuery.isSuccess) router.push("/")
+  }, [profileQuery.data, profileQuery.isSuccess, router]);
 
-    await new Promise((resolve) => setTimeout(resolve, 1400));
-    setIsLoading(false);
-    setSubmitSuccess(`Account successfully created for ${data.name}! You can now sign in.`);
+  const onSubmit = async (data: SignupFormData) => {
+    signupMutation.mutate(data)
   };
 
   const getInputClasses = (hasError?: boolean, isPassword?: boolean) =>
@@ -82,28 +98,6 @@ export function SignupForm() {
         </p>
       </div>
 
-      <AnimatePresence mode="wait">
-        {submitSuccess && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm flex items-start gap-3"
-          >
-            <CheckCircle2 className="size-5 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <p className="font-semibold text-xs sm:text-sm">Registration Successful!</p>
-              <p className="text-xs text-muted-foreground">{submitSuccess}</p>
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-primary underline underline-offset-4 pt-1"
-              >
-                Go to Sign In <ArrowRight className="size-3" />
-              </Link>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5">
@@ -117,7 +111,7 @@ export function SignupForm() {
               type="text"
               placeholder="Enter name"
               autoComplete="name"
-              disabled={isLoading}
+              disabled={signupMutation.isPending}
               {...register("name")}
               className={getInputClasses(Boolean(errors.name))}
             />
@@ -145,7 +139,7 @@ export function SignupForm() {
               type="email"
               placeholder="Enter email"
               autoComplete="email"
-              disabled={isLoading}
+              disabled={signupMutation.isPending}
               {...register("email")}
               className={getInputClasses(Boolean(errors.email))}
             />
@@ -174,7 +168,7 @@ export function SignupForm() {
                 type="tel"
                 placeholder="Enter mobile number"
                 autoComplete="tel"
-                disabled={isLoading}
+                disabled={signupMutation.isPending}
                 {...register("mobile")}
                 className={getInputClasses(Boolean(errors.mobile))}
               />
@@ -202,7 +196,7 @@ export function SignupForm() {
                 type="date"
                 max={maxDobDate}
                 placeholder="Enter date of birth"
-                disabled={isLoading}
+                disabled={signupMutation.isPending}
                 {...register("dob")}
                 className={getInputClasses(Boolean(errors.dob))}
               />
@@ -231,13 +225,13 @@ export function SignupForm() {
               type={showPassword ? "text" : "password"}
               placeholder="Enter password"
               autoComplete="new-password"
-              disabled={isLoading}
+              disabled={signupMutation.isPending}
               {...register("password")}
               className={getInputClasses(Boolean(errors.password), true)}
             />
             <button
               type="button"
-              disabled={isLoading}
+              disabled={signupMutation.isPending}
               onClick={() => setShowPassword(!showPassword)}
               className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground transition-colors"
               title={showPassword ? "Hide password" : "Show password"}
@@ -271,13 +265,13 @@ export function SignupForm() {
               type={showConfirmPassword ? "text" : "password"}
               placeholder="Confirm password"
               autoComplete="new-password"
-              disabled={isLoading}
+              disabled={signupMutation.isPending}
               {...register("confirmPassword")}
               className={getInputClasses(Boolean(errors.confirmPassword), true)}
             />
             <button
               type="button"
-              disabled={isLoading}
+              disabled={signupMutation.isPending}
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground transition-colors"
               title={showConfirmPassword ? "Hide password" : "Show password"}
@@ -299,12 +293,12 @@ export function SignupForm() {
 
         <motion.button
           type="submit"
-          disabled={isLoading}
+          disabled={signupMutation.isPending}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
           className="w-full h-12 mt-2 rounded-xl bg-primary text-primary-foreground font-semibold text-sm shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/35 transition-all flex items-center justify-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
         >
-          {isLoading ? (
+          {signupMutation.isPending ? (
             <>
               <Loader2 className="size-4.5 animate-spin" />
               <span>Creating your account...</span>
@@ -328,7 +322,7 @@ export function SignupForm() {
 
           <button
             type="button"
-            disabled={isLoading}
+            disabled={signupMutation.isPending}
             className="w-full h-11.5 flex items-center justify-center gap-2.5 rounded-xl border border-border bg-background hover:bg-muted text-foreground text-sm font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
           >
             <svg className="size-4.5 shrink-0" viewBox="0 0 24 24">
