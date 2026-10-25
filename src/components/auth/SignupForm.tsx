@@ -16,7 +16,6 @@ import {
   ArrowRight,
   Loader2,
   AlertCircle,
-  CheckCircle2,
   Sparkles,
 } from "lucide-react";
 import { signupSchema, type SignupFormData } from "@/lib/validations/auth";
@@ -25,14 +24,14 @@ import { Label } from "@/components/ui/label";
 import { useMutation } from "@tanstack/react-query";
 import { signup } from "@/lib/client-api/auth";
 import { SignupPayload } from "@/lib/client-api/auth/types";
-import { useMe } from "@/hooks/useMe";
 import { useRouter } from "next/navigation";
+import { useAppStore } from "@/store/useAppStore";
 
 export function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
-  const { profileQuery } = useMe();
+  const {user} = useAppStore();
 
   const {
     register,
@@ -73,9 +72,8 @@ export function SignupForm() {
   }, []);
 
   useEffect(() => {
-    if(profileQuery.isSuccess)
-    if(profileQuery.isSuccess) router.push("/")
-  }, [profileQuery.data, profileQuery.isSuccess, router]);
+    if(user) router.push("/")
+  }, [user, router]);
 
   const onSubmit = async (data: SignupFormData) => {
     signupMutation.mutate(data)
