@@ -60,7 +60,6 @@ export function LoginForm() {
     }`;
 
   useEffect(() => {
-    if(profileQuery.isSuccess)
     if(profileQuery.isSuccess) router.push("/")
   }, [profileQuery.data, profileQuery.isSuccess, router])
 

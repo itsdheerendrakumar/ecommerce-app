@@ -1,19 +1,18 @@
-import { AdminPartnerSidebar } from "@/components/AdminPartnerSidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 import { ProtectedRouteProvider } from "@/components/providers/ProtectedRouteProvider";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { ProtectedHeader } from "@/components/layout/ProtectedHeader";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRouteProvider>
       <SidebarProvider>
-        <AdminPartnerSidebar />
+        <AppSidebar />
         <SidebarInset>
-          <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
-          </header>
-          <div className="flex flex-1 flex-col gap-4 p-4">
+          <ProtectedHeader />
+          <main className="flex flex-1 flex-col gap-4 p-4 md:p-6">
             {children}
-          </div>
+          </main>
         </SidebarInset>
       </SidebarProvider>
     </ProtectedRouteProvider>

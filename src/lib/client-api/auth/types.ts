@@ -22,6 +22,8 @@ export interface UserProfile {
   name?: string;
   email: string;
   role: UserRole;
+  image?: string;
+  avatar?: string;
   dob?: string | Date;
   phone?: string;
   createdAt?: string | Date;
@@ -30,4 +32,4 @@ export interface UserProfile {
 
 export interface ProfileResponse {
   user: UserProfile | null;
-}
+}

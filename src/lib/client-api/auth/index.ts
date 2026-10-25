@@ -20,4 +20,9 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
 export async function getProfile(): Promise<ProfileResponse> {
   const response = await instance.get<ProfileResponse>("/me");
   return response.data;
-}
+}
+
+export async function logout() {
+  const response = await instance.post("/logout", {});
+  return response.data;
+}
