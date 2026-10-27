@@ -22,11 +22,12 @@ import { login } from "@/lib/client-api/auth";
 import type { LoginPayload } from "@/lib/client-api/auth/types";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/useAppStore";
+import { toast } from "sonner";
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  const {user} = useAppStore();
+  const { user } = useAppStore();
   const {
     register,
     handleSubmit,
@@ -46,6 +47,9 @@ export function LoginForm() {
     mutationFn: (payload: LoginPayload) => login(payload),
     onSuccess: () => {
       router.push("/");
+    },
+    onError: (error) => {
+      toast.error("Invalid credentials");
     }
   })
 
@@ -62,7 +66,7 @@ export function LoginForm() {
     }`;
 
   useEffect(() => {
-    if(user) router.push("/")
+    if (user) router.push("/")
   }, [user, router]);
 
   return (
