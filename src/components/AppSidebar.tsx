@@ -40,6 +40,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSuccess: () => {
+      localStorage.clear();
       clearUser()
       router.push("/login")
     }
@@ -56,8 +57,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const activeConfig = isAdmin
     ? SIDEBAR_ROLE_CONFIGS.admin
     : isDeliveryPartner
-    ? SIDEBAR_ROLE_CONFIGS["delivery-partner"]
-    : SIDEBAR_ROLE_CONFIGS.customer;
+      ? SIDEBAR_ROLE_CONFIGS["delivery-partner"]
+      : SIDEBAR_ROLE_CONFIGS.customer;
 
   const HeaderIcon = activeConfig.headerIcon;
 
