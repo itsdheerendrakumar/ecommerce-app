@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Heart, Search, ArrowUpDown, SlidersHorizontal, X } from "lucide-react";
@@ -11,6 +11,7 @@ import { PublicNavbar } from "@/components/layout/Navbar";
 export default function ShopPage() {
   const { products, toggleWishlist, wishlist } = useAppStore();
   const router = useRouter();
+  const { user } = useAppStore();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
@@ -49,6 +50,10 @@ export default function ShopPage() {
     return result;
   }, [products, activeCategory, searchQuery, sortBy]);
 
+  useEffect(() => {
+    if (user?.role === "admin") return router.push("/admin/dashboard");
+  }, [user])
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <PublicNavbar />
@@ -81,17 +86,15 @@ export default function ShopPage() {
                   key={cat}
                   type="button"
                   onClick={() => setActiveCategory(cat)}
-                  className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-                    isActive
-                      ? "bg-foreground text-background shadow-xs"
-                      : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${isActive
+                    ? "bg-foreground text-background shadow-xs"
+                    : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
                 >
                   <span>{cat}</span>
                   <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                      isActive ? "bg-background/20 text-background" : "bg-background text-muted-foreground"
-                    }`}
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? "bg-background/20 text-background" : "bg-background text-muted-foreground"
+                      }`}
                   >
                     {count}
                   </span>
@@ -196,11 +199,10 @@ export default function ShopPage() {
                         e.stopPropagation();
                         toggleWishlist(product.id);
                       }}
-                      className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all shadow-xs ${
-                        isWished
-                          ? "bg-rose-500 text-white"
-                          : "bg-background/80 text-muted-foreground hover:bg-background hover:text-foreground"
-                      }`}
+                      className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all shadow-xs ${isWished
+                        ? "bg-rose-500 text-white"
+                        : "bg-background/80 text-muted-foreground hover:bg-background hover:text-foreground"
+                        }`}
                       title={isWished ? "Remove from wishlist" : "Add to wishlist"}
                     >
                       <Heart className={`w-4 h-4 ${isWished ? "fill-current" : ""}`} />

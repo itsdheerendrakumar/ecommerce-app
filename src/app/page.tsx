@@ -5,13 +5,20 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap, ShieldCheck, Truck, Star, ShoppingBag, Heart } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
-import { useMe } from "@/hooks/useMe";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
 
 export default function Home() {
-  const { products, wishlist, toggleWishlist } = useAppStore();
-  const { profileQuery } = useMe();
-  const user = profileQuery.data?.user;
+  const { products, wishlist, toggleWishlist, user } = useAppStore();
   const trending = products.slice(0, 4);
+  const router = useRouter();
+
+
+  useEffect(() => {
+    if (user?.role === "admin") return router.push("/admin/dashboard");
+  }, [user])
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -153,11 +160,10 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => toggleWishlist(product.id)}
-                      className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all ${
-                        isWished
-                          ? "bg-rose-500 text-white"
-                          : "bg-background/80 text-muted-foreground hover:text-foreground"
-                      }`}
+                      className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all ${isWished
+                        ? "bg-rose-500 text-white"
+                        : "bg-background/80 text-muted-foreground hover:text-foreground"
+                        }`}
                     >
                       <Heart className={`w-4 h-4 ${isWished ? "fill-current" : ""}`} />
                     </button>
