@@ -19,11 +19,11 @@ export interface DecodedTokenPayload extends jwt.JwtPayload {
 }
 
 export function generateJwtToken(payload: JwtUserPayload, type: "accessToken" | "refreshToken", rememberMe?: boolean): string {
-    console.log({acessTokenExpiry, refreshTokenExpiry, jwtSecret})
     const token = jwt.sign({
-        data: {_id: payload._id, role: payload.role}},
+        data: { _id: payload._id, role: payload.role }
+    },
         jwtSecret,
-        {expiresIn: (type === "accessToken" ? acessTokenExpiry : (rememberMe ? refreshTokenExpiry : "30m")) as jwt.SignOptions["expiresIn"]}
+        { expiresIn: (type === "accessToken" ? acessTokenExpiry : (rememberMe ? refreshTokenExpiry : "30m")) as jwt.SignOptions["expiresIn"] }
     )
     return token
 }
@@ -35,4 +35,4 @@ export function verifyToken(token: string): DecodedTokenPayload | false {
     } catch (_) {
         return false
     }
-}
+}

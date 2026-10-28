@@ -31,5 +31,10 @@ export interface UserProfile {
 }
 
 export interface ProfileResponse {
-  user: UserProfile | null;
+  message?: string;
+  data?: {
+    data: UserProfile;
+  };
+  meta?: unknown;
+  user?: UserProfile | null;
 }

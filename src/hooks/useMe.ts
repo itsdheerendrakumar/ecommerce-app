@@ -6,5 +6,6 @@ export function useMe() {
         queryKey: ["me"],
         queryFn: getProfile
     });
-    return { profileQuery }
+    const user = profileQuery.data?.user ?? profileQuery.data?.data?.data ?? null;
+    return { profileQuery, user };
 }

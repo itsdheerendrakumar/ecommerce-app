@@ -19,7 +19,12 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
 
 export async function getProfile(): Promise<ProfileResponse> {
   const response = await instance.get<ProfileResponse>("/me");
-  return response.data;
+  const rawData = response.data;
+  const user = rawData?.data?.data ?? rawData?.user ?? null;
+  return {
+    ...rawData,
+    user,
+  };
 }
 
 export async function logout() {

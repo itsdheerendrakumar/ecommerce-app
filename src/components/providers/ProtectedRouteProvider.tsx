@@ -8,28 +8,29 @@ import { ShieldAlert, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function ProtectedRouteProvider({ children }: { children: ReactNode }) {
-  const { profileQuery } = useMe();
+  const { profileQuery, user: meUser } = useMe();
   const { user: storeUser, setUser, clearUser } = useAppStore();
   const pathname = usePathname();
   const router = useRouter();
 
+  const user = meUser || profileQuery.data?.user || storeUser;
+  const role = user?.role;
+
   // Sync profile data to Zustand store
   useEffect(() => {
-    if (profileQuery.data?.user) {
-      setUser(profileQuery.data.user);
+    const fetchedUser = meUser || profileQuery.data?.user;
+    if (fetchedUser) {
+      setUser(fetchedUser);
     } else if (profileQuery.isError) {
       clearUser();
     }
-  }, [profileQuery.data?.user, profileQuery.isError, setUser, clearUser]);
-
-  const user = profileQuery.data?.user || storeUser;
-  const role = user?.role;
+  }, [meUser, profileQuery.data?.user, profileQuery.isError, setUser, clearUser]);
 
   useEffect(() => {
-    if (profileQuery.isError || (profileQuery.isSuccess && !profileQuery.data?.user && !storeUser)) {
+    if (profileQuery.isError || (profileQuery.isSuccess && !user)) {
       router.replace("/login");
     }
-  }, [profileQuery.isError, profileQuery.isSuccess, profileQuery.data, storeUser, router]);
+  }, [profileQuery.isError, profileQuery.isSuccess, user, router]);
 
   if (profileQuery.isLoading && !storeUser) {
     return (
@@ -52,41 +53,41 @@ export function ProtectedRouteProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  const isAdminRoute = pathname.startsWith("/admin");
-  if (isAdminRoute && role !== "admin") {
-    return (
-      <AccessDenied
-        userRole={role || "customer"}
-        targetPortal="Admin Console"
-        redirectPath={role === "delivery-partner" ? "/delivery" : "/customer"}
-      />
-    );
-  }
+  // const isAdminRoute = pathname.startsWith("/admin");
+  // if (isAdminRoute && role !== "admin") {
+  //   return (
+  //     <AccessDenied
+  //       userRole={role || "customer"}
+  //       targetPortal="Admin Console"
+  //       redirectPath={role === "delivery-partner" ? "/delivery" : "/customer"}
+  //     />
+  //   );
+  // }
 
-  const isDeliveryRoute = pathname.startsWith("/delivery");
-  if (isDeliveryRoute && role !== "delivery-partner") {
-    return (
-      <AccessDenied
-        userRole={role || "customer"}
-        targetPortal="Delivery Hub"
-        redirectPath={role === "admin" ? "/admin" : "/customer"}
-      />
-    );
-  }
+  // const isDeliveryRoute = pathname.startsWith("/delivery");
+  // if (isDeliveryRoute && role !== "delivery-partner") {
+  //   return (
+  //     <AccessDenied
+  //       userRole={role || "customer"}
+  //       targetPortal="Delivery Hub"
+  //       redirectPath={role === "admin" ? "/admin" : "/customer"}
+  //     />
+  //   );
+  // }
 
-  const isCustomerRoute = pathname.startsWith("/customer");
-  if (isCustomerRoute && role === "admin") {
-    return <AccessDenied userRole="admin" targetPortal="Customer Portal" redirectPath="/admin" />;
-  }
-  if (isCustomerRoute && role === "delivery-partner") {
-    return (
-      <AccessDenied
-        userRole="delivery-partner"
-        targetPortal="Customer Portal"
-        redirectPath="/delivery"
-      />
-    );
-  }
+  // const isCustomerRoute = pathname.startsWith("/customer");
+  // if (isCustomerRoute && role === "admin") {
+  //   return <AccessDenied userRole="admin" targetPortal="Customer Portal" redirectPath="/admin" />;
+  // }
+  // if (isCustomerRoute && role === "delivery-partner") {
+  //   return (
+  //     <AccessDenied
+  //       userRole="delivery-partner"
+  //       targetPortal="Customer Portal"
+  //       redirectPath="/delivery"
+  //     />
+  //   );
+  // }
 
   return <>{children}</>;
 }
