@@ -11,8 +11,6 @@ import { PublicNavbar } from "@/components/layout/Navbar";
 export default function Shop() {
   const { products, toggleWishlist, wishlist } = useAppStore();
   const router = useRouter();
-  const { user } = useAppStore();
-
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [sortBy, setSortBy] = useState("featured");
@@ -49,10 +47,6 @@ export default function Shop() {
 
     return result;
   }, [products, activeCategory, searchQuery, sortBy]);
-
-  // useEffect(() => {
-  //   if (user?.role === "admin") return router.push("/admin/dashboard");
-  // }, [user])
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">

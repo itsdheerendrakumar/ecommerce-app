@@ -6,18 +6,11 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap, ShieldCheck, Truck, Star, ShoppingBag, Heart } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
 
 export default function Home() {
     const { products, wishlist, toggleWishlist, user } = useAppStore();
     const trending = products.slice(0, 4);
     const router = useRouter();
-
-
-    // useEffect(() => {
-    //     if (user?.role === "admin") return router.push("/admin/dashboard");
-    // }, [user])
 
 
     return (
