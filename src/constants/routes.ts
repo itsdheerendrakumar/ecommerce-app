@@ -35,7 +35,8 @@ export const APP_ROUTES = {
     DASHBOARD: "/admin/dashboard",
     PRODUCTS: "/admin/products",
     ORDERS: "/admin/orders",
-    CUSTOMERS: "/admin/customers",
+    USERS: "/admin/users",
+    CUSTOMERS: "/admin/users",
     SETTINGS: "/admin/settings",
   },
   DELIVERY: {
@@ -75,7 +76,7 @@ export const adminNavItems: NavItem[] = [
   { name: "Overview", path: APP_ROUTES.ADMIN.PORTAL, icon: LayoutDashboard },
   { name: "Products", path: APP_ROUTES.ADMIN.PRODUCTS, icon: Package },
   { name: "Orders", path: APP_ROUTES.ADMIN.ORDERS, icon: ShoppingCart },
-  { name: "Customers", path: APP_ROUTES.ADMIN.CUSTOMERS, icon: Users },
+  { name: "Users", path: APP_ROUTES.ADMIN.USERS, icon: Users },
   { name: "Settings", path: APP_ROUTES.ADMIN.SETTINGS, icon: Settings },
 ];
 
