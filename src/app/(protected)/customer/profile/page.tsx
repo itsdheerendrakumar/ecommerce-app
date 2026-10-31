@@ -5,6 +5,7 @@ import { useMe } from "@/hooks/useMe";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, MapPin, Bell, Shield, Edit, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function CustomerProfilePage() {
   const { profileQuery } = useMe();
@@ -21,29 +22,49 @@ export default function CustomerProfilePage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="space-y-1.5">
           <Button
-            variant={activeTab === "personal" ? "secondary" : "ghost"}
-            className="w-full justify-start rounded-xl font-semibold text-sm"
+            variant={activeTab === "personal" ? "default" : "ghost"}
+            className={cn(
+              "w-full justify-start rounded-xl font-semibold text-sm transition-all",
+              activeTab === "personal"
+                ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
             onClick={() => setActiveTab("personal")}
           >
             <User className="w-4 h-4 mr-2" /> Personal Info
           </Button>
           <Button
-            variant={activeTab === "addresses" ? "secondary" : "ghost"}
-            className="w-full justify-start rounded-xl font-semibold text-sm"
+            variant={activeTab === "addresses" ? "default" : "ghost"}
+            className={cn(
+              "w-full justify-start rounded-xl font-semibold text-sm transition-all",
+              activeTab === "addresses"
+                ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
             onClick={() => setActiveTab("addresses")}
           >
             <MapPin className="w-4 h-4 mr-2" /> Addresses
           </Button>
           <Button
-            variant={activeTab === "notifications" ? "secondary" : "ghost"}
-            className="w-full justify-start rounded-xl font-semibold text-sm"
+            variant={activeTab === "notifications" ? "default" : "ghost"}
+            className={cn(
+              "w-full justify-start rounded-xl font-semibold text-sm transition-all",
+              activeTab === "notifications"
+                ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
             onClick={() => setActiveTab("notifications")}
           >
             <Bell className="w-4 h-4 mr-2" /> Notifications
           </Button>
           <Button
-            variant={activeTab === "security" ? "secondary" : "ghost"}
-            className="w-full justify-start rounded-xl font-semibold text-sm"
+            variant={activeTab === "security" ? "default" : "ghost"}
+            className={cn(
+              "w-full justify-start rounded-xl font-semibold text-sm transition-all",
+              activeTab === "security"
+                ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
             onClick={() => setActiveTab("security")}
           >
             <Shield className="w-4 h-4 mr-2" /> Security

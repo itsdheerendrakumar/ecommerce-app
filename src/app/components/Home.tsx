@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap, ShieldCheck, Truck, Star, ShoppingBag, Heart } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 import { useRouter } from "next/navigation";
+import { PublicNavbar } from "@/components/layout/Navbar";
 
 export default function Home() {
     const { products, wishlist, toggleWishlist, user } = useAppStore();
@@ -15,39 +16,7 @@ export default function Home() {
 
     return (
         <div className="min-h-screen flex flex-col bg-background text-foreground">
-            <header className="sticky top-0 z-50 w-full border-b bg-background/90 backdrop-blur-md">
-                <div className="container mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-extrabold text-lg shadow-sm">
-                            S
-                        </div>
-                        <span className="font-extrabold text-xl tracking-tight">
-                            StoreFront<span className="text-primary">.</span>
-                        </span>
-                    </Link>
-
-                    <nav className="flex items-center gap-3">
-                        <Link href="/shop">
-                            <Button variant="ghost" className="rounded-full text-sm font-semibold">
-                                Shop Collection
-                            </Button>
-                        </Link>
-                        {user ? (
-                            <Link href="/shop">
-                                <Button className="rounded-full px-5 text-sm font-semibold">
-                                    Go to Dashboard
-                                </Button>
-                            </Link>
-                        ) : (
-                            <Link href="/login">
-                                <Button className="rounded-full px-5 text-sm font-semibold">
-                                    Sign In
-                                </Button>
-                            </Link>
-                        )}
-                    </nav>
-                </div>
-            </header>
+            <PublicNavbar />
 
             {/* Hero Section */}
             <section className="relative w-full min-h-[80vh] flex items-center bg-muted/20 overflow-hidden">

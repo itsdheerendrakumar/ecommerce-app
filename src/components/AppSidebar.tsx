@@ -30,6 +30,7 @@ import { LogOut } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { logout } from "@/lib/client-api/auth";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
@@ -68,6 +69,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
     if (path === "/admin") {
       return pathname === "/admin" || pathname === "/admin/dashboard";
+    }
+    if (path === "/admin/users") {
+      return pathname === "/admin/users" || pathname === "/admin/customers";
     }
     if (path === "/delivery") {
       return pathname === "/delivery";
@@ -118,17 +122,35 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         isActive={isActive}
                         tooltip={item.name}
                         render={<Link href={item.path} />}
+                        className={cn(
+                          isActive &&
+                            "bg-primary text-primary-foreground font-semibold shadow-xs hover:bg-primary/90 hover:text-primary-foreground"
+                        )}
                       >
                         <Icon className="h-4 w-4" />
                         <span>{item.name}</span>
                       </SidebarMenuButton>
                       {isCustomer && item.badge === "cart" && cartCount > 0 && (
-                        <SidebarMenuBadge className="rounded-full bg-primary text-primary-foreground font-bold text-[10px] h-5 min-w-5 px-1.5 flex items-center justify-center">
+                        <SidebarMenuBadge
+                          className={cn(
+                            "rounded-full font-bold text-[10px] h-5 min-w-5 px-1.5 flex items-center justify-center transition-colors",
+                            isActive
+                              ? "bg-primary-foreground text-primary"
+                              : "bg-primary text-primary-foreground"
+                          )}
+                        >
                           {cartCount}
                         </SidebarMenuBadge>
                       )}
                       {isCustomer && item.badge === "wishlist" && wishlistCount > 0 && (
-                        <SidebarMenuBadge className="rounded-full bg-rose-500 text-white font-bold text-[10px] h-5 min-w-5 px-1.5 flex items-center justify-center">
+                        <SidebarMenuBadge
+                          className={cn(
+                            "rounded-full font-bold text-[10px] h-5 min-w-5 px-1.5 flex items-center justify-center transition-colors",
+                            isActive
+                              ? "bg-white text-rose-600"
+                              : "bg-rose-500 text-white"
+                          )}
+                        >
                           {wishlistCount}
                         </SidebarMenuBadge>
                       )}

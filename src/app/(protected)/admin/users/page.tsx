@@ -30,7 +30,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
-import { getInitials } from "@/lib/utils";
+import { getInitials, cn } from "@/lib/utils";
 import { AddDeliveryPartnerModal } from "./AddDeliveryPartnerModal";
 import type { DeliveryPartner, CustomerUser } from "@/lib/validations/delivery-partner";
 
@@ -287,20 +287,22 @@ export default function AdminUsersPage() {
           <button
             type="button"
             onClick={() => setActiveTab("customers")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all",
               activeTab === "customers"
-                ? "bg-background text-foreground shadow-xs"
+                ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
-            }`}
+            )}
           >
             <Users className="w-3.5 h-3.5" />
             <span>Customers</span>
             <span
-              className={`text-[11px] px-1.5 py-0.2 rounded-full ${
+              className={cn(
+                "text-[11px] px-1.5 py-0.2 rounded-full transition-colors",
                 activeTab === "customers"
-                  ? "bg-primary/10 text-primary font-bold"
+                  ? "bg-primary-foreground/20 text-primary-foreground font-bold"
                   : "bg-muted-foreground/15 text-muted-foreground"
-              }`}
+              )}
             >
               {customers.length}
             </span>
@@ -309,20 +311,22 @@ export default function AdminUsersPage() {
           <button
             type="button"
             onClick={() => setActiveTab("delivery")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all",
               activeTab === "delivery"
-                ? "bg-background text-foreground shadow-xs"
+                ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
-            }`}
+            )}
           >
             <Truck className="w-3.5 h-3.5" />
             <span>Delivery Partners</span>
             <span
-              className={`text-[11px] px-1.5 py-0.2 rounded-full ${
+              className={cn(
+                "text-[11px] px-1.5 py-0.2 rounded-full transition-colors",
                 activeTab === "delivery"
-                  ? "bg-primary/10 text-primary font-bold"
+                  ? "bg-primary-foreground/20 text-primary-foreground font-bold"
                   : "bg-muted-foreground/15 text-muted-foreground"
-              }`}
+              )}
             >
               {deliveryPartners.length}
             </span>
@@ -359,11 +363,12 @@ export default function AdminUsersPage() {
               <button
                 type="button"
                 onClick={() => setCustomerViewMode("card")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
                   customerViewMode === "card"
-                    ? "bg-background text-foreground shadow-xs"
+                    ? "bg-primary text-primary-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
-                }`}
+                )}
                 title="Card View"
               >
                 <LayoutGrid className="w-3.5 h-3.5" />
@@ -372,11 +377,12 @@ export default function AdminUsersPage() {
               <button
                 type="button"
                 onClick={() => setCustomerViewMode("table")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
                   customerViewMode === "table"
-                    ? "bg-background text-foreground shadow-xs"
+                    ? "bg-primary text-primary-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
-                }`}
+                )}
                 title="Table View"
               >
                 <TableIcon className="w-3.5 h-3.5" />
@@ -545,11 +551,12 @@ export default function AdminUsersPage() {
                 <button
                   type="button"
                   onClick={() => setPartnerViewMode("card")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
                     partnerViewMode === "card"
-                      ? "bg-background text-foreground shadow-xs"
+                      ? "bg-primary text-primary-foreground shadow-xs"
                       : "text-muted-foreground hover:text-foreground"
-                  }`}
+                  )}
                   title="Card View"
                 >
                   <LayoutGrid className="w-3.5 h-3.5" />
@@ -558,11 +565,12 @@ export default function AdminUsersPage() {
                 <button
                   type="button"
                   onClick={() => setPartnerViewMode("table")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
                     partnerViewMode === "table"
-                      ? "bg-background text-foreground shadow-xs"
+                      ? "bg-primary text-primary-foreground shadow-xs"
                       : "text-muted-foreground hover:text-foreground"
-                  }`}
+                  )}
                   title="Table View"
                 >
                   <TableIcon className="w-3.5 h-3.5" />
