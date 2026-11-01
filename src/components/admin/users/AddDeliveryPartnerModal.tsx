@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -14,13 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   deliveryPartnerSchema,
-  type DeliveryPartnerFormData,
   type DeliveryPartner,
 } from "@/lib/validations/delivery-partner";
 import {
   User,
   Mail,
   Phone,
+  Calendar,
   Bike,
   CreditCard,
   Truck,
@@ -34,39 +34,15 @@ import {
   MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
+import { DeliveryPartnerFormData } from "@/lib/client-api/admin/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createDeliveryPartner } from "@/lib/client-api/admin";
+import { queryKeys } from "@/constants/query-key";
 
 interface AddDeliveryPartnerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onPartnerAdded: (partner: DeliveryPartner) => void;
-}
-
-function createNewPartner(data: DeliveryPartnerFormData): DeliveryPartner {
-  return {
-    id: `dp-${Date.now()}`,
-    name: data.name,
-    email: data.email,
-    phone: data.phone,
-    address: data.address,
-    city: data.city,
-    pincode: data.pincode,
-    aadharNumber: data.aadharNumber,
-    vehicleName: data.vehicleName,
-    vehicleNumber: data.vehicleNumber,
-    licenseNumber: data.licenseNumber,
-    bankName: data.bankName,
-    accountNumber: data.accountNumber,
-    ifscCode: data.ifscCode.toUpperCase(),
-    emergencyContactName: data.emergencyContactName,
-    emergencyContactPhone: data.emergencyContactPhone,
-    status: "active",
-    completedDeliveries: 0,
-    rating: 5.0,
-    joinedDate: new Date().toLocaleDateString("en-US", {
-      month: "short",
-      year: "numeric",
-    }),
-  };
+  onPartnerAdded?: (partner: DeliveryPartner) => void;
 }
 
 export function AddDeliveryPartnerModal({
@@ -74,7 +50,7 @@ export function AddDeliveryPartnerModal({
   onOpenChange,
   onPartnerAdded,
 }: AddDeliveryPartnerModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -87,40 +63,45 @@ export function AddDeliveryPartnerModal({
       name: "",
       email: "",
       phone: "",
+      dob: "",
       address: "",
       city: "",
-      pincode: "",
-      aadharNumber: "",
-      vehicleName: "",
-      vehicleNumber: "",
-      licenseNumber: "",
-      bankName: "",
-      accountNumber: "",
-      ifscCode: "",
-      emergencyContactName: "",
-      emergencyContactPhone: "",
+      pin_code: "",
+      vehicle_name: "",
+      vehicle_number: "",
+      aadhar_number: "",
+      license_number: "",
+      bank_name: "",
+      account_number: "",
+      ifsc_code: "",
+      emergency_contact_name: "",
+      emergency_contact_phone: "",
+    },
+  });
+
+  const [maxDobDate, setMaxDobDate] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() - 18);
+    setMaxDobDate(date.toISOString().split("T")[0]);
+  }, []);
+
+  const createDeliveryPartnerMutation = useMutation({
+    mutationFn: createDeliveryPartner,
+    onSuccess: (data) => {
+      toast.success(data.message || "Delivery partner created successfully");
+      reset();
+      queryClient.invalidateQueries({ queryKey: [queryKeys.deliveryPartners] });
+      onOpenChange(false);
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || error.message || "Failed to create delivery partner");
     },
   });
 
   const onSubmit = async (data: DeliveryPartnerFormData) => {
-    try {
-      setIsSubmitting(true);
-      // Simulate quick UI response delay
-      await new Promise((resolve) => setTimeout(resolve, 600));
-
-      const newPartner = createNewPartner(data);
-
-      onPartnerAdded(newPartner);
-      toast.success("Delivery partner registered successfully!", {
-        description: `${data.name} has been added to active courier dispatch.`,
-      });
-      reset();
-      onOpenChange(false);
-    } catch {
-      toast.error("Failed to register delivery partner. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    createDeliveryPartnerMutation.mutate(data);
   };
 
   const handleClose = () => {
@@ -224,6 +205,33 @@ export function AddDeliveryPartnerModal({
             </div>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="dp-dob">Date of Birth</Label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <input
+                  id="dp-dob"
+                  type="date"
+                  max={maxDobDate}
+                  placeholder="Enter date of birth"
+                  {...register("dob")}
+                  className={`w-full h-10 pl-9 pr-3 rounded-lg border bg-background text-sm text-foreground transition-all placeholder:text-muted-foreground/60 outline-none ${
+                    errors.dob
+                      ? "border-destructive focus:ring-2 focus:ring-destructive/30"
+                      : "border-border hover:border-zinc-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  }`}
+                />
+              </div>
+              {errors.dob && (
+                <p className="text-xs text-destructive flex items-center gap-1 mt-1">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  {errors.dob.message}
+                </p>
+              )}
+            </div>
+          </div>
+
           {/* Section: Address Details */}
           <div className="space-y-3 pt-1">
             <div className="space-y-1.5">
@@ -276,25 +284,25 @@ export function AddDeliveryPartnerModal({
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="dp-pincode">PIN / Postal Code</Label>
+                <Label htmlFor="dp-pin_code">PIN / Postal Code</Label>
                 <div className="relative">
                   <input
-                    id="dp-pincode"
+                    id="dp-pin_code"
                     type="text"
                     placeholder="Enter PIN / postal code"
                     maxLength={10}
-                    {...register("pincode")}
+                    {...register("pin_code")}
                     className={`w-full h-10 px-3 rounded-lg border bg-background text-sm text-foreground transition-all placeholder:text-muted-foreground/60 outline-none ${
-                      errors.pincode
+                      errors.pin_code
                         ? "border-destructive focus:ring-2 focus:ring-destructive/30"
                         : "border-border hover:border-zinc-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
                     }`}
                   />
                 </div>
-                {errors.pincode && (
+                {errors.pin_code && (
                   <p className="text-xs text-destructive flex items-center gap-1 mt-1">
                     <AlertCircle className="w-3.5 h-3.5" />
-                    {errors.pincode.message}
+                    {errors.pin_code.message}
                   </p>
                 )}
               </div>
@@ -304,48 +312,48 @@ export function AddDeliveryPartnerModal({
           {/* Section 2: Vehicle & Government IDs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="dp-vehicleName">Vehicle Name</Label>
+              <Label htmlFor="dp-vehicle_name">Vehicle Name</Label>
               <div className="relative">
                 <Bike className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <input
-                  id="dp-vehicleName"
+                  id="dp-vehicle_name"
                   type="text"
                   placeholder="Enter vehicle name"
-                  {...register("vehicleName")}
+                  {...register("vehicle_name")}
                   className={`w-full h-10 pl-9 pr-3 rounded-lg border bg-background text-sm text-foreground transition-all placeholder:text-muted-foreground/60 outline-none ${
-                    errors.vehicleName
+                    errors.vehicle_name
                       ? "border-destructive focus:ring-2 focus:ring-destructive/30"
                       : "border-border hover:border-zinc-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   }`}
                 />
               </div>
-              {errors.vehicleName && (
+              {errors.vehicle_name && (
                 <p className="text-xs text-destructive flex items-center gap-1 mt-1">
                   <AlertCircle className="w-3.5 h-3.5" />
-                  {errors.vehicleName.message}
+                  {errors.vehicle_name.message}
                 </p>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="dp-vehicleNumber">Motorcycle Registration / Plate</Label>
+              <Label htmlFor="dp-vehicle_number">Motorcycle Registration / Plate</Label>
               <div className="relative">
                 <input
-                  id="dp-vehicleNumber"
+                  id="dp-vehicle_number"
                   type="text"
                   placeholder="Enter motorcycle plate number"
-                  {...register("vehicleNumber")}
+                  {...register("vehicle_number")}
                   className={`w-full h-10 px-3 rounded-lg border bg-background text-sm text-foreground transition-all placeholder:text-muted-foreground/60 outline-none ${
-                    errors.vehicleNumber
+                    errors.vehicle_number
                       ? "border-destructive focus:ring-2 focus:ring-destructive/30"
                       : "border-border hover:border-zinc-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   }`}
                 />
               </div>
-              {errors.vehicleNumber && (
+              {errors.vehicle_number && (
                 <p className="text-xs text-destructive flex items-center gap-1 mt-1">
                   <AlertCircle className="w-3.5 h-3.5" />
-                  {errors.vehicleNumber.message}
+                  {errors.vehicle_number.message}
                 </p>
               )}
             </div>
@@ -354,50 +362,50 @@ export function AddDeliveryPartnerModal({
           {/* Aadhaar & Driving License Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="dp-aadharNumber">Aadhaar Card Number</Label>
+              <Label htmlFor="dp-aadhar_number">Aadhaar Card Number</Label>
               <div className="relative">
                 <CreditCard className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <input
-                  id="dp-aadharNumber"
+                  id="dp-aadhar_number"
                   type="text"
                   placeholder="Enter Aadhaar card number"
                   maxLength={14}
-                  {...register("aadharNumber")}
+                  {...register("aadhar_number")}
                   className={`w-full h-10 pl-9 pr-3 rounded-lg border bg-background text-sm text-foreground transition-all placeholder:text-muted-foreground/60 outline-none ${
-                    errors.aadharNumber
+                    errors.aadhar_number
                       ? "border-destructive focus:ring-2 focus:ring-destructive/30"
                       : "border-border hover:border-zinc-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   }`}
                 />
               </div>
-              {errors.aadharNumber && (
+              {errors.aadhar_number && (
                 <p className="text-xs text-destructive flex items-center gap-1 mt-1">
                   <AlertCircle className="w-3.5 h-3.5" />
-                  {errors.aadharNumber.message}
+                  {errors.aadhar_number.message}
                 </p>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="dp-licenseNumber">Driving License / ID</Label>
+              <Label htmlFor="dp-license_number">Driving License / ID</Label>
               <div className="relative">
                 <Shield className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <input
-                  id="dp-licenseNumber"
+                  id="dp-license_number"
                   type="text"
                   placeholder="Enter driving license number"
-                  {...register("licenseNumber")}
+                  {...register("license_number")}
                   className={`w-full h-10 pl-9 pr-3 rounded-lg border bg-background text-sm text-foreground transition-all placeholder:text-muted-foreground/60 outline-none ${
-                    errors.licenseNumber
+                    errors.license_number
                       ? "border-destructive focus:ring-2 focus:ring-destructive/30"
                       : "border-border hover:border-zinc-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   }`}
                 />
               </div>
-              {errors.licenseNumber && (
+              {errors.license_number && (
                 <p className="text-xs text-destructive flex items-center gap-1 mt-1">
                   <AlertCircle className="w-3.5 h-3.5" />
-                  {errors.licenseNumber.message}
+                  {errors.license_number.message}
                 </p>
               )}
             </div>
@@ -406,76 +414,76 @@ export function AddDeliveryPartnerModal({
           {/* Section 3: Bank Account Payout Details */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="dp-bankName">Bank Name</Label>
+              <Label htmlFor="dp-bank_name">Bank Name</Label>
               <div className="relative">
                 <Landmark className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <input
-                  id="dp-bankName"
+                  id="dp-bank_name"
                   type="text"
                   placeholder="Enter bank name"
-                  {...register("bankName")}
+                  {...register("bank_name")}
                   className={`w-full h-10 pl-9 pr-3 rounded-lg border bg-background text-sm text-foreground transition-all placeholder:text-muted-foreground/60 outline-none ${
-                    errors.bankName
+                    errors.bank_name
                       ? "border-destructive focus:ring-2 focus:ring-destructive/30"
                       : "border-border hover:border-zinc-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   }`}
                 />
               </div>
-              {errors.bankName && (
+              {errors.bank_name && (
                 <p className="text-xs text-destructive flex items-center gap-1 mt-1">
                   <AlertCircle className="w-3.5 h-3.5" />
-                  {errors.bankName.message}
+                  {errors.bank_name.message}
                 </p>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="dp-ifscCode">IFSC Code</Label>
+              <Label htmlFor="dp-ifsc_code">IFSC Code</Label>
               <div className="relative">
                 <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <input
-                  id="dp-ifscCode"
+                  id="dp-ifsc_code"
                   type="text"
                   placeholder="Enter IFSC code"
                   maxLength={11}
-                  {...register("ifscCode")}
+                  {...register("ifsc_code")}
                   className={`w-full h-10 pl-9 pr-3 rounded-lg border bg-background text-sm uppercase text-foreground transition-all placeholder:text-muted-foreground/60 outline-none ${
-                    errors.ifscCode
+                    errors.ifsc_code
                       ? "border-destructive focus:ring-2 focus:ring-destructive/30"
                       : "border-border hover:border-zinc-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   }`}
                 />
               </div>
-              {errors.ifscCode && (
+              {errors.ifsc_code && (
                 <p className="text-xs text-destructive flex items-center gap-1 mt-1">
                   <AlertCircle className="w-3.5 h-3.5" />
-                  {errors.ifscCode.message}
+                  {errors.ifsc_code.message}
                 </p>
               )}
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="dp-accountNumber">Bank Account Number</Label>
+            <Label htmlFor="dp-account_number">Bank Account Number</Label>
             <div className="relative">
               <CreditCard className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <input
-                id="dp-accountNumber"
+                id="dp-account_number"
                 type="text"
                 placeholder="Enter bank account number"
                 maxLength={18}
-                {...register("accountNumber")}
+                {...register("account_number")}
                 className={`w-full h-10 pl-9 pr-3 rounded-lg border bg-background text-sm text-foreground transition-all placeholder:text-muted-foreground/60 outline-none ${
-                  errors.accountNumber
+                  errors.account_number
                     ? "border-destructive focus:ring-2 focus:ring-destructive/30"
                     : "border-border hover:border-zinc-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
                 }`}
               />
             </div>
-            {errors.accountNumber && (
+            {errors.account_number && (
               <p className="text-xs text-destructive flex items-center gap-1 mt-1">
                 <AlertCircle className="w-3.5 h-3.5" />
-                {errors.accountNumber.message}
+                {errors.account_number.message}
               </p>
             )}
           </div>
@@ -491,43 +499,43 @@ export function AddDeliveryPartnerModal({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="dp-emergencyName" className="text-[11px]">Contact Person Name</Label>
+                <Label htmlFor="dp-emergency_contact_name" className="text-[11px]">Contact Person Name</Label>
                 <input
-                  id="dp-emergencyName"
+                  id="dp-emergency_contact_name"
                   type="text"
                   placeholder="Enter emergency contact name"
-                  {...register("emergencyContactName")}
+                  {...register("emergency_contact_name")}
                   className={`w-full h-9 px-3 rounded-lg border bg-background text-xs text-foreground transition-all placeholder:text-muted-foreground/60 outline-none ${
-                    errors.emergencyContactName
+                    errors.emergency_contact_name
                       ? "border-destructive focus:ring-2 focus:ring-destructive/30"
                       : "border-border hover:border-zinc-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   }`}
                 />
-                {errors.emergencyContactName && (
+                {errors.emergency_contact_name && (
                   <p className="text-[11px] text-destructive flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" />
-                    {errors.emergencyContactName.message}
+                    {errors.emergency_contact_name.message}
                   </p>
                 )}
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="dp-emergencyPhone" className="text-[11px]">Emergency Phone</Label>
+                <Label htmlFor="dp-emergency_contact_phone" className="text-[11px]">Emergency Phone</Label>
                 <input
-                  id="dp-emergencyPhone"
+                  id="dp-emergency_contact_phone"
                   type="text"
                   placeholder="Enter emergency phone number"
-                  {...register("emergencyContactPhone")}
+                  {...register("emergency_contact_phone")}
                   className={`w-full h-9 px-3 rounded-lg border bg-background text-xs text-foreground transition-all placeholder:text-muted-foreground/60 outline-none ${
-                    errors.emergencyContactPhone
+                    errors.emergency_contact_phone
                       ? "border-destructive focus:ring-2 focus:ring-destructive/30"
                       : "border-border hover:border-zinc-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   }`}
                 />
-                {errors.emergencyContactPhone && (
+                {errors.emergency_contact_phone && (
                   <p className="text-[11px] text-destructive flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" />
-                    {errors.emergencyContactPhone.message}
+                    {errors.emergency_contact_phone.message}
                   </p>
                 )}
               </div>
@@ -540,16 +548,16 @@ export function AddDeliveryPartnerModal({
               type="button"
               variant="outline"
               onClick={handleClose}
-              disabled={isSubmitting}
+              disabled={createDeliveryPartnerMutation.isPending}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={createDeliveryPartnerMutation.isPending}
               className="gap-1.5 min-w-[140px]"
             >
-              {isSubmitting ? (
+              {createDeliveryPartnerMutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Saving...
@@ -567,3 +575,4 @@ export function AddDeliveryPartnerModal({
     </Dialog>
   );
 }
+
