@@ -22,6 +22,20 @@ export const deliveryPartnerSchema = z.object({
       },
       { message: "Phone number must have between 10 and 15 digits" }
     ),
+  address: z
+    .string()
+    .min(1, "Address is required")
+    .min(5, "Address must be at least 5 characters")
+    .max(150, "Address must not exceed 150 characters"),
+  city: z
+    .string()
+    .min(1, "City is required")
+    .min(2, "City must be at least 2 characters")
+    .max(50, "City must not exceed 50 characters"),
+  pincode: z
+    .string()
+    .min(1, "PIN / Postal code is required")
+    .regex(/^[0-9A-Za-z\s-]{4,10}$/, "Please enter a valid PIN or postal code"),
   aadharNumber: z
     .string()
     .min(1, "Aadhaar card number is required")
@@ -83,6 +97,9 @@ export interface DeliveryPartner {
   name: string;
   email: string;
   phone: string;
+  address: string;
+  city: string;
+  pincode: string;
   aadharNumber: string;
   vehicleName: string;
   vehicleNumber: string;

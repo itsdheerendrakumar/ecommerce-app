@@ -98,6 +98,9 @@ const initialDeliveryPartners: DeliveryPartner[] = [
     name: "Alex Rivera",
     email: "alex.rider@fastdrop.com",
     phone: "+1 (555) 345-6789",
+    address: "742 Evergreen Terrace",
+    city: "Brooklyn, NY",
+    pincode: "11201",
     aadharNumber: "5421 9802 3412",
     vehicleName: "Honda Shine",
     vehicleNumber: "NY-8429",
@@ -117,6 +120,9 @@ const initialDeliveryPartners: DeliveryPartner[] = [
     name: "Brian Chen",
     email: "brian.c@fastdrop.com",
     phone: "+1 (555) 789-0123",
+    address: "128 Mott Street, Apt 3B",
+    city: "Chinatown, NY",
+    pincode: "10013",
     aadharNumber: "7812 3490 1256",
     vehicleName: "Yamaha FZ-S",
     vehicleNumber: "NY-2041",
@@ -136,6 +142,9 @@ const initialDeliveryPartners: DeliveryPartner[] = [
     name: "Samantha Miller",
     email: "sam.miller@fastdrop.com",
     phone: "+1 (555) 210-9876",
+    address: "450 Lexington Ave, Suite 12",
+    city: "Manhattan, NY",
+    pincode: "10017",
     aadharNumber: "9012 4589 6723",
     vehicleName: "Bajaj Pulsar 150",
     vehicleNumber: "NY-5510",
@@ -155,6 +164,9 @@ const initialDeliveryPartners: DeliveryPartner[] = [
     name: "Carlos Gomez",
     email: "carlos.g@fastdrop.com",
     phone: "+1 (555) 678-9012",
+    address: "89-14 Roosevelt Ave",
+    city: "Queens, NY",
+    pincode: "11372",
     aadharNumber: "3489 1278 9034",
     vehicleName: "Hero Splendor Plus",
     vehicleNumber: "NY-7740",
@@ -198,6 +210,9 @@ export default function AdminUsersPage() {
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.address && p.address.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (p.city && p.city.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (p.pincode && p.pincode.toLowerCase().includes(searchQuery.toLowerCase())) ||
       p.vehicleName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.aadharNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.licenseNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -669,6 +684,14 @@ export default function AdminUsersPage() {
                         </p>
                       </div>
 
+                      {/* Residential Address & Hub */}
+                      <div className="flex items-start gap-2 text-xs text-muted-foreground pt-1 border-t border-border/50">
+                        <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                        <span className="line-clamp-2">
+                          {partner.address}{partner.city ? `, ${partner.city}` : ""}{partner.pincode ? ` - ${partner.pincode}` : ""}
+                        </span>
+                      </div>
+
                       {/* Vehicle & Identity Info */}
                       <div className="bg-muted/40 rounded-xl p-3 grid grid-cols-2 gap-2 text-xs">
                         <div>
@@ -735,7 +758,8 @@ export default function AdminUsersPage() {
               <Table>
                 <TableHeader className="bg-muted/40">
                   <TableRow>
-                    <TableHead className="w-[240px]">Courier</TableHead>
+                    <TableHead className="w-[220px]">Courier</TableHead>
+                    <TableHead>Address & Hub</TableHead>
                     <TableHead>Vehicle & Plate</TableHead>
                     <TableHead>Government IDs</TableHead>
                     <TableHead>Bank Account & IFSC</TableHead>
@@ -764,6 +788,18 @@ export default function AdminUsersPage() {
                                 {partner.phone}
                               </p>
                             </div>
+                          </div>
+                        </TableCell>
+
+                        <TableCell>
+                          <div className="space-y-0.5 text-xs max-w-[200px]">
+                            <p className="font-medium text-foreground flex items-center gap-1.5 truncate" title={partner.address}>
+                              <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+                              <span className="truncate">{partner.address}</span>
+                            </p>
+                            <p className="text-[11px] text-muted-foreground truncate pl-5">
+                              {[partner.city, partner.pincode].filter(Boolean).join(" - ")}
+                            </p>
                           </div>
                         </TableCell>
 

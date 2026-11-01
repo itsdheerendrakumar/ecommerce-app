@@ -31,6 +31,7 @@ import {
   AlertCircle,
   Loader2,
   CheckCircle2,
+  MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -38,6 +39,34 @@ interface AddDeliveryPartnerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onPartnerAdded: (partner: DeliveryPartner) => void;
+}
+
+function createNewPartner(data: DeliveryPartnerFormData): DeliveryPartner {
+  return {
+    id: `dp-${Date.now()}`,
+    name: data.name,
+    email: data.email,
+    phone: data.phone,
+    address: data.address,
+    city: data.city,
+    pincode: data.pincode,
+    aadharNumber: data.aadharNumber,
+    vehicleName: data.vehicleName,
+    vehicleNumber: data.vehicleNumber,
+    licenseNumber: data.licenseNumber,
+    bankName: data.bankName,
+    accountNumber: data.accountNumber,
+    ifscCode: data.ifscCode.toUpperCase(),
+    emergencyContactName: data.emergencyContactName,
+    emergencyContactPhone: data.emergencyContactPhone,
+    status: "active",
+    completedDeliveries: 0,
+    rating: 5.0,
+    joinedDate: new Date().toLocaleDateString("en-US", {
+      month: "short",
+      year: "numeric",
+    }),
+  };
 }
 
 export function AddDeliveryPartnerModal({
@@ -58,6 +87,9 @@ export function AddDeliveryPartnerModal({
       name: "",
       email: "",
       phone: "",
+      address: "",
+      city: "",
+      pincode: "",
       aadharNumber: "",
       vehicleName: "",
       vehicleNumber: "",
@@ -76,28 +108,7 @@ export function AddDeliveryPartnerModal({
       // Simulate quick UI response delay
       await new Promise((resolve) => setTimeout(resolve, 600));
 
-      const newPartner: DeliveryPartner = {
-        id: `dp-${Date.now()}`,
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        aadharNumber: data.aadharNumber,
-        vehicleName: data.vehicleName,
-        vehicleNumber: data.vehicleNumber,
-        licenseNumber: data.licenseNumber,
-        bankName: data.bankName,
-        accountNumber: data.accountNumber,
-        ifscCode: data.ifscCode.toUpperCase(),
-        emergencyContactName: data.emergencyContactName,
-        emergencyContactPhone: data.emergencyContactPhone,
-        status: "active",
-        completedDeliveries: 0,
-        rating: 5.0,
-        joinedDate: new Date().toLocaleDateString("en-US", {
-          month: "short",
-          year: "numeric",
-        }),
-      };
+      const newPartner = createNewPartner(data);
 
       onPartnerAdded(newPartner);
       toast.success("Delivery partner registered successfully!", {
@@ -210,6 +221,83 @@ export function AddDeliveryPartnerModal({
                   {errors.phone.message}
                 </p>
               )}
+            </div>
+          </div>
+
+          {/* Section: Address Details */}
+          <div className="space-y-3 pt-1">
+            <div className="space-y-1.5">
+              <Label htmlFor="dp-address">Address</Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <input
+                  id="dp-address"
+                  type="text"
+                  placeholder="Enter address"
+                  {...register("address")}
+                  className={`w-full h-10 pl-9 pr-3 rounded-lg border bg-background text-sm text-foreground transition-all placeholder:text-muted-foreground/60 outline-none ${
+                    errors.address
+                      ? "border-destructive focus:ring-2 focus:ring-destructive/30"
+                      : "border-border hover:border-zinc-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  }`}
+                />
+              </div>
+              {errors.address && (
+                <p className="text-xs text-destructive flex items-center gap-1 mt-1">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  {errors.address.message}
+                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="dp-city">City</Label>
+                <div className="relative">
+                  <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <input
+                    id="dp-city"
+                    type="text"
+                    placeholder="Enter city"
+                    {...register("city")}
+                    className={`w-full h-10 pl-9 pr-3 rounded-lg border bg-background text-sm text-foreground transition-all placeholder:text-muted-foreground/60 outline-none ${
+                      errors.city
+                        ? "border-destructive focus:ring-2 focus:ring-destructive/30"
+                        : "border-border hover:border-zinc-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    }`}
+                  />
+                </div>
+                {errors.city && (
+                  <p className="text-xs text-destructive flex items-center gap-1 mt-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {errors.city.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="dp-pincode">PIN / Postal Code</Label>
+                <div className="relative">
+                  <input
+                    id="dp-pincode"
+                    type="text"
+                    placeholder="Enter PIN / postal code"
+                    maxLength={10}
+                    {...register("pincode")}
+                    className={`w-full h-10 px-3 rounded-lg border bg-background text-sm text-foreground transition-all placeholder:text-muted-foreground/60 outline-none ${
+                      errors.pincode
+                        ? "border-destructive focus:ring-2 focus:ring-destructive/30"
+                        : "border-border hover:border-zinc-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    }`}
+                  />
+                </div>
+                {errors.pincode && (
+                  <p className="text-xs text-destructive flex items-center gap-1 mt-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {errors.pincode.message}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
