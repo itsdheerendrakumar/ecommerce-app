@@ -43,9 +43,26 @@ export interface DeliveryPartnerUserItem {
   deliveryPartner?: IDeliveryPartnerProfile | null;
 }
 
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 export interface GetDeliveryPartnersResponse {
   message: string;
   data?: {
     data: DeliveryPartnerUserItem[];
   };
+  meta?: PaginationMeta;
+}
+
+export interface GetDeliveryPartnersParams {
+  role?: "customer" | "delivery-partner";
+  page?: number;
+  limit?: number;
+  search?: string;
+  startDate?: string;
+  endDate?: string;
 }

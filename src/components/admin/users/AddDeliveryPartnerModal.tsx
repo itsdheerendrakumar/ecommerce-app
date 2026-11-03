@@ -129,7 +129,6 @@ export function AddDeliveryPartnerModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
-          {/* Section 1: Basic Information */}
           <div className="space-y-1.5">
             <Label htmlFor="dp-name">Full Name</Label>
             <div className="relative">
@@ -154,7 +153,6 @@ export function AddDeliveryPartnerModal({
             )}
           </div>
 
-          {/* Email & Phone Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="dp-email">Email Address</Label>
@@ -232,7 +230,6 @@ export function AddDeliveryPartnerModal({
             </div>
           </div>
 
-          {/* Section: Address Details */}
           <div className="space-y-3 pt-1">
             <div className="space-y-1.5">
               <Label htmlFor="dp-address">Address</Label>
@@ -309,7 +306,6 @@ export function AddDeliveryPartnerModal({
             </div>
           </div>
 
-          {/* Section 2: Vehicle & Government IDs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="dp-vehicle_name">Vehicle Name</Label>
@@ -359,7 +355,6 @@ export function AddDeliveryPartnerModal({
             </div>
           </div>
 
-          {/* Aadhaar & Driving License Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="dp-aadhar_number">Aadhaar Card Number</Label>
@@ -411,7 +406,6 @@ export function AddDeliveryPartnerModal({
             </div>
           </div>
 
-          {/* Section 3: Bank Account Payout Details */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="dp-bank_name">Bank Name</Label>
@@ -488,7 +482,6 @@ export function AddDeliveryPartnerModal({
             )}
           </div>
 
-          {/* Section 4: Emergency Contact */}
           <div className="p-3.5 rounded-xl border border-dashed border-border/80 bg-muted/20 space-y-3">
             <div className="flex items-center gap-2">
               <HeartPulse className="w-4 h-4 text-rose-500" />
@@ -542,7 +535,6 @@ export function AddDeliveryPartnerModal({
             </div>
           </div>
 
-          {/* Actions */}
           <div className="pt-4 border-t flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5">
             <Button
               type="button"

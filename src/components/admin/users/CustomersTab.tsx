@@ -3,6 +3,8 @@
 import { useState } from "react";
 import {
   Users,
+  Search,
+  X,
   Mail,
   Phone,
   MapPin,
@@ -80,12 +82,9 @@ const initialCustomers: CustomerUser[] = [
   },
 ];
 
-interface CustomersTabProps {
-  searchQuery?: string;
-}
-
-export function CustomersTab({ searchQuery = "" }: CustomersTabProps) {
+export function CustomersTab() {
   const [customerViewMode, setCustomerViewMode] = useState<"card" | "table">("card");
+  const [searchQuery, setSearchQuery] = useState("");
   const [customers] = useState<CustomerUser[]>(initialCustomers);
 
   const filteredCustomers = customers.filter(
@@ -98,41 +97,62 @@ export function CustomersTab({ searchQuery = "" }: CustomersTabProps) {
 
   return (
     <div className="space-y-4">
-      {/* Subheader with View Switcher (Card View vs Table View) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
           Showing registered customer directory and transaction records.
         </p>
 
-        <div className="flex items-center p-1 bg-muted rounded-xl border border-border/60 w-fit self-end sm:self-auto">
-          <button
-            type="button"
-            onClick={() => setCustomerViewMode("card")}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
-              customerViewMode === "card"
-                ? "bg-primary text-primary-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
+        <div className="flex items-center gap-2 self-end sm:self-auto">
+          <div className="relative w-full sm:w-56">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search customers..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-8 pl-8 pr-7 rounded-lg border border-border bg-background text-xs placeholder:text-muted-foreground/60 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             )}
-            title="Card View"
-          >
-            <LayoutGrid className="w-3.5 h-3.5" />
-            <span>Card View</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setCustomerViewMode("table")}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
-              customerViewMode === "table"
-                ? "bg-primary text-primary-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-            title="Table View"
-          >
-            <TableIcon className="w-3.5 h-3.5" />
-            <span>Table View</span>
-          </button>
+          </div>
+
+          <div className="flex items-center p-1 bg-muted rounded-xl border border-border/60">
+            <button
+              type="button"
+              onClick={() => setCustomerViewMode("card")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
+                customerViewMode === "card"
+                  ? "bg-primary text-primary-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              title="Card View"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Card View</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setCustomerViewMode("table")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
+                customerViewMode === "table"
+                  ? "bg-primary text-primary-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              title="Table View"
+            >
+              <TableIcon className="w-3.5 h-3.5" />
+              <span>Table View</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -147,7 +167,6 @@ export function CustomersTab({ searchQuery = "" }: CustomersTabProps) {
           </CardContent>
         </Card>
       ) : customerViewMode === "card" ? (
-        /* Customer Card View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredCustomers.map((customer) => (
             <Card
@@ -207,7 +226,6 @@ export function CustomersTab({ searchQuery = "" }: CustomersTabProps) {
           ))}
         </div>
       ) : (
-        /* Customer Table View */
         <Card className="rounded-2xl border border-border/80 shadow-xs overflow-hidden">
           <Table>
             <TableHeader className="bg-muted/40">
@@ -281,4 +299,3 @@ export function CustomersTab({ searchQuery = "" }: CustomersTabProps) {
     </div>
   );
 }
-

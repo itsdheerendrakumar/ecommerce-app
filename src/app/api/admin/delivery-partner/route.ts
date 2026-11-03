@@ -22,8 +22,25 @@ export const GET = asyncHandler(async (request: Request) => {
 
     const { searchParams } = new URL(request.url);
     const roleParam = searchParams.get("role") || "delivery-partner";
-    const role = (roleParam === "customer" ? "customer" : "delivery-partner") as "customer" | "delivery-partner";
 
-    const users = await getUserListing(role);
-    return Response.json(apiResponse("Users fetched successfully", users), { status: 200 })
+    if (roleParam !== "customer" && roleParam !== "delivery-partner") {
+        throw new ApiError(400, "Invalid role. Role must be 'customer' or 'delivery-partner'");
+    }
+
+    const page = parseInt(searchParams.get("page") || "1", 10) || 1;
+    const limit = parseInt(searchParams.get("limit") || "10", 10) || 10;
+    const search = searchParams.get("search") || undefined;
+    const startDate = searchParams.get("startDate") || undefined;
+    const endDate = searchParams.get("endDate") || undefined;
+
+    const { users, meta } = await getUserListing({
+        role: roleParam,
+        page,
+        limit,
+        search,
+        startDate,
+        endDate,
+    });
+
+    return Response.json(apiResponse("Users fetched successfully", users, meta), { status: 200 })
 })
