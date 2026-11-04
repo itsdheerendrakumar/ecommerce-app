@@ -108,6 +108,7 @@ const deliveryPartnerSchema = new Schema<IDeliveryPartner>(
     },
     {
         timestamps: true,
+        _id: false
     }
 );
 
