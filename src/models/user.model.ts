@@ -13,6 +13,14 @@ const userSchema = new Schema(
         dob: {
             type: Date,
         },
+        profile_picture: {
+            type: String
+        },
+        gender: {
+            type: String,
+            enum: ["male", "female", "other"],
+            default: "male"
+        },
         role: {
             type: String,
             enum: ["admin", "customer", "delivery-partner"],

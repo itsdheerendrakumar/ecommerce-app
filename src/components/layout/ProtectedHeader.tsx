@@ -7,6 +7,7 @@ import { getInitials } from "@/lib/utils";
 export function ProtectedHeader() {
   const user = useAppStore((state) => state.user);
   const initials = getInitials(user?.name);
+  const avatarUrl = user?.profile_picture || user?.image || user?.avatar;
 
   return (
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b bg-background/95 px-4 backdrop-blur-md">
@@ -21,7 +22,15 @@ export function ProtectedHeader() {
               title={user.name}
               className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-xs ring-1 ring-primary/20 overflow-hidden"
             >
-              <span className="tracking-tighter select-none">{initials}</span>
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={user.name || "User Avatar"}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="tracking-tighter select-none">{initials}</span>
+              )}
             </div>
 
             <span className="text-sm font-semibold text-foreground">

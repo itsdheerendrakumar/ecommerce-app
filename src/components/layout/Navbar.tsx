@@ -16,6 +16,7 @@ export function PublicNavbar() {
   const cartCount = cart ? cart.reduce((acc, item) => acc + item.quantity, 0) : 0;
   const wishlistCount = wishlist ? wishlist.length : 0;
   const initials = getInitials(user?.name || user?.email);
+  const avatarUrl = user?.profile_picture || user?.image || user?.avatar;
 
   const isShopActive = pathname === "/shop" || pathname.startsWith("/shop/") || pathname.startsWith("/product/");
   const isWishlistActive = pathname === "/customer/wishlist";
@@ -161,7 +162,7 @@ export function PublicNavbar() {
                 </Link>
               )}
 
-              {/* Avatar circle with initials */}
+              {/* Avatar circle with initials or profile picture */}
               <Link
                 href={role === "admin" ? "/admin" : role === "delivery-partner" ? "/delivery" : "/customer"}
                 title={user.name || user.email}
@@ -174,9 +175,9 @@ export function PublicNavbar() {
                       : "bg-primary/10 text-primary ring-primary/20"
                   )}
                 >
-                  {user.image || user.avatar ? (
+                  {avatarUrl ? (
                     <img
-                      src={user.image || user.avatar}
+                      src={avatarUrl}
                       alt={user.name || "User"}
                       className="h-full w-full object-cover"
                     />

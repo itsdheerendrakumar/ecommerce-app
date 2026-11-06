@@ -10,6 +10,13 @@ export interface SignupResponse {
   message: string;
 }
 
+export interface UpdateProfilePayload {
+  name?: string;
+  phone?: string;
+  currentPassword?: string;
+  newPassword?: string;
+}
+
 export interface LoginResponse {
   data?: {
     message: string;
@@ -24,6 +31,7 @@ export interface UserProfile {
   role: UserRole;
   image?: string;
   avatar?: string;
+  profile_picture?: string;
   dob?: string | Date;
   phone?: string;
   createdAt?: string | Date;

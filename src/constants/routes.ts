@@ -77,7 +77,7 @@ export const adminNavItems: NavItem[] = [
   { name: "Products", path: APP_ROUTES.ADMIN.PRODUCTS, icon: Package },
   { name: "Orders", path: APP_ROUTES.ADMIN.ORDERS, icon: ShoppingCart },
   { name: "Users", path: APP_ROUTES.ADMIN.USERS, icon: Users },
-  { name: "Settings", path: APP_ROUTES.ADMIN.SETTINGS, icon: Settings },
+  { name: "Profile Settings", path: APP_ROUTES.ADMIN.SETTINGS, icon: Settings },
 ];
 
 export const deliveryNavItems: NavItem[] = [

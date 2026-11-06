@@ -79,8 +79,16 @@ export default function CustomerProfilePage() {
               </CardHeader>
               <CardContent className="space-y-5">
                 <div className="flex items-center space-x-5">
-                  <div className="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center text-2xl font-bold">
-                    {user?.name ? user.name.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : "U")}
+                  <div className="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center text-2xl font-bold overflow-hidden ring-2 ring-primary/20">
+                    {user?.profile_picture || user?.image || user?.avatar ? (
+                      <img
+                        src={user.profile_picture || user.image || user.avatar}
+                        alt={user.name || "Customer User"}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      user?.name ? user.name.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : "U")
+                    )}
                   </div>
                   <div>
                     <h3 className="font-bold text-base">{user?.name || "Customer User"}</h3>
