@@ -31,3 +31,6 @@ export async function logout() {
   const response = await instance.post("/logout", {});
   return response.data;
 }
+
+export { changePassword } from "../common";
+
