@@ -1,12 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { AddProductModal } from "@/components/admin/products/AddProductModal";
 
 export default function AdminProductsPage() {
   const { products } = useAppStore();
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-16">
@@ -15,10 +18,12 @@ export default function AdminProductsPage() {
           <h1 className="text-3xl font-extrabold tracking-tight">Product Catalog</h1>
           <p className="text-sm text-muted-foreground mt-1">Manage inventory, stock levels, and product prices.</p>
         </div>
-        <Button className="rounded-full">
+        <Button className="rounded-full" onClick={() => setIsAddModalOpen(true)}>
           <Plus className="w-4 h-4 mr-1.5" /> Add New Item
         </Button>
       </div>
+
+      <AddProductModal open={isAddModalOpen} onOpenChange={setIsAddModalOpen} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
