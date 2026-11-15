@@ -3,6 +3,7 @@ import type {
     DeliveryPartnerFormData,
     GetDeliveryPartnersParams,
     GetDeliveryPartnersResponse,
+    GetDeliveryPartnerDetailResponse,
 } from "./types";
 
 export async function createDeliveryPartner(payload: DeliveryPartnerFormData): Promise<{ message: string }> {
@@ -27,4 +28,12 @@ export async function getDeliveryPartners(params: GetDeliveryPartnersParams = {}
     return response.data;
 }
 
+export async function getDeliveryPartnerById(id: string): Promise<GetDeliveryPartnerDetailResponse> {
+    const response = await instance.get<GetDeliveryPartnerDetailResponse>(
+        `/admin/delivery-partner/${id}`
+    );
+    return response.data;
+}
+
 export const getDeliveryPartner = getDeliveryPartners;
+export const getDeliveryPartnerDetail = getDeliveryPartnerById;

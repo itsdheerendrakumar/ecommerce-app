@@ -1,4 +1,5 @@
 import "server-only";
+import mongoose from "mongoose";
 import { connectDb } from "@/lib/db";
 import { generateTemporaryPassword } from "@/lib/utils";
 import { hashPassword } from "@/lib/bycrypt";
@@ -128,10 +129,11 @@ export async function getUserListing({
     const totalPages = Math.ceil(total / limitNumber);
 
     const users = await User.find(filter)
-        .select("-password")
+        .select("name email phone role is_active createdAt")
         .populate({
             path: "deliveryPartner",
             model: DeliveryPartner,
+            select: "duty_status total_ratings vehicle_name vehicle_number completed_deliveries address.city",
         })
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -146,4 +148,37 @@ export async function getUserListing({
             totalPages,
         },
     };
+}
+
+export async function getUserDetail(id: string) {
+    await connectDb();
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new ApiError(400, "Invalid user ID format");
+    }
+
+    let user = await User.findById(id)
+        .select("-password")
+        .populate({
+            path: "deliveryPartner",
+            model: DeliveryPartner,
+        });
+
+    if (!user) {
+        const dp = await DeliveryPartner.findById(id);
+        if (dp) {
+            user = await User.findById(dp.user_id)
+                .select("-password")
+                .populate({
+                    path: "deliveryPartner",
+                    model: DeliveryPartner,
+                });
+        }
+    }
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    return user;
 }

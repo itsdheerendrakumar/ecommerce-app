@@ -58,6 +58,13 @@ export interface GetDeliveryPartnersResponse {
   meta?: PaginationMeta;
 }
 
+export interface GetDeliveryPartnerDetailResponse {
+  message: string;
+  data?: {
+    data: DeliveryPartnerUserItem;
+  };
+}
+
 export interface GetDeliveryPartnersParams {
   role?: "customer" | "delivery-partner";
   page?: number;

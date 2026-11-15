@@ -24,6 +24,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Eye,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ import {
 } from "@/components/ui/table";
 import { getInitials, cn } from "@/lib/utils";
 import { AddDeliveryPartnerModal } from "./AddDeliveryPartnerModal";
+import { DeliveryPartnerDetailModal } from "./DeliveryPartnerDetailModal";
 import { useQuery } from "@tanstack/react-query";
 import { getDeliveryPartners } from "@/lib/client-api/admin";
 import { queryKeys } from "@/constants/query-key";
@@ -65,6 +67,8 @@ export function DeliveryPartnersTab() {
 
   const [partnerViewMode, setPartnerViewMode] = useState<"card" | "table">("card");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [searchInput, setSearchInput] = useState(urlSearch);
   const limit = 10;
 
@@ -373,19 +377,19 @@ export function DeliveryPartnersTab() {
       ) : partnerViewMode === "card" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {deliveryPartners.map((partner) => {
+            const partnerId = partner._id || partner.id;
             const dp = partner.deliveryPartner;
             const displayName = partner.name || partner.email.split("@")[0] || "Delivery Partner";
             const isOnline = dp?.duty_status === "on-duty";
             const rating = dp?.total_ratings || 5.0;
-            const fullAddress = dp?.address?.address || "Address not provided";
-            const cityPin = [dp?.address?.city, dp?.address?.pin_code].filter(Boolean).join(" - ");
+            const city = dp?.address?.city;
 
             return (
               <Card
-                key={partner._id || partner.id}
-                className="rounded-2xl border border-border/80 shadow-xs hover:border-zinc-300 dark:hover:border-zinc-700 transition-all overflow-hidden"
+                key={partnerId}
+                className="rounded-2xl border border-border/80 shadow-xs hover:border-zinc-300 dark:hover:border-zinc-700 transition-all overflow-hidden flex flex-col justify-between"
               >
-                <CardContent className="p-5 space-y-4">
+                <CardContent className="p-5 space-y-4 flex-1">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div className="w-11 h-11 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
@@ -431,76 +435,50 @@ export function DeliveryPartnersTab() {
                       <span className="truncate">{partner.email}</span>
                     </p>
                     <p className="flex items-center gap-2 truncate">
-                      <Phone className="w-3.5 h-3.5 shrink-0" />
-                      <span>{partner.phone || "N/A"}</span>
+                      <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <span className="truncate">{city || "Location not set"}</span>
                     </p>
                   </div>
 
-                  <div className="flex items-start gap-2 text-xs text-muted-foreground pt-1 border-t border-border/50">
-                    <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
-                    <span className="line-clamp-2">
-                      {fullAddress}
-                      {cityPin ? `, ${cityPin}` : ""}
-                    </span>
-                  </div>
-
-                  <div className="bg-muted/40 rounded-xl p-3 grid grid-cols-2 gap-2 text-xs">
+                  <div className="bg-muted/40 rounded-xl p-3 flex items-center justify-between text-xs">
                     <div>
-                      <p className="text-[11px] text-muted-foreground">Vehicle Name</p>
+                      <p className="text-[11px] text-muted-foreground">Vehicle</p>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400">
                           <Bike className="w-3 h-3" />
                           {dp?.vehicle_name || "N/A"}
                         </span>
+                        <span className="text-[11px] text-muted-foreground font-mono">
+                          {dp?.vehicle_number || ""}
+                        </span>
                       </div>
-                      <p className="text-[11px] font-medium text-foreground mt-1 truncate">
-                        Plate: {dp?.vehicle_number || "N/A"}
-                      </p>
                     </div>
-
                     <div className="text-right">
-                      <p className="text-[11px] text-muted-foreground">Aadhaar Card No.</p>
-                      <p className="font-semibold text-foreground mt-0.5 truncate tracking-wide">
-                        {dp?.aadhar_number || "N/A"}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground mt-1">
-                        DL: <span className="font-medium text-foreground">{dp?.license_number || "N/A"}</span>
+                      <p className="text-[11px] text-muted-foreground">Completed</p>
+                      <p className="font-bold text-foreground text-sm mt-0.5">
+                        {dp?.completed_deliveries ?? 0} orders
                       </p>
                     </div>
-                  </div>
-
-                  <div className="p-2.5 rounded-xl border border-dashed border-border/80 bg-muted/20 space-y-1.5 text-xs">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-muted-foreground flex items-center gap-1.5">
-                        <Landmark className="w-3.5 h-3.5 text-primary" />
-                        Bank Payout
-                      </span>
-                      <span className="font-semibold text-foreground">
-                        {dp?.bank_name || "Bank"} • A/C: ••••
-                        {dp?.account_number ? dp.account_number.slice(-4) : "••••"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-[11px] border-t border-border/40 pt-1.5">
-                      <span className="text-muted-foreground flex items-center gap-1.5">
-                        <HeartPulse className="w-3.5 h-3.5 text-rose-500" />
-                        Emergency
-                      </span>
-                      <span
-                        className="text-foreground truncate max-w-[200px]"
-                        title={`${dp?.emergency_contact_name || "N/A"} (${dp?.emergency_contact_phone || "N/A"})`}
-                      >
-                        {dp?.emergency_contact_name || "N/A"} • {dp?.emergency_contact_phone || "N/A"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[11px] text-muted-foreground">
-                    <span>Joined: {formatJoinedDate(partner.createdAt)}</span>
-                    <span className="font-medium text-foreground">
-                      {dp?.completed_deliveries ?? 0} completed deliveries
-                    </span>
                   </div>
                 </CardContent>
+
+                <div className="px-5 py-3 border-t border-border/50 bg-muted/20 flex items-center justify-between text-xs">
+                  <span className="text-[11px] text-muted-foreground">
+                    Joined: {formatJoinedDate(partner.createdAt)}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedPartnerId(partnerId || null);
+                      setIsDetailModalOpen(true);
+                    }}
+                    className="gap-1.5 h-7 px-3 text-xs rounded-lg hover:bg-primary hover:text-primary-foreground transition-colors"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>View Details</span>
+                  </Button>
+                </div>
               </Card>
             );
           })}
@@ -510,26 +488,25 @@ export function DeliveryPartnersTab() {
           <Table>
             <TableHeader className="bg-muted/40">
               <TableRow>
-                <TableHead className="w-[220px]">Courier</TableHead>
-                <TableHead>Address & Hub</TableHead>
+                <TableHead className="w-[240px]">Courier</TableHead>
+                <TableHead>Location</TableHead>
                 <TableHead>Vehicle & Plate</TableHead>
-                <TableHead>Government IDs</TableHead>
-                <TableHead>Bank Account & IFSC</TableHead>
-                <TableHead>Emergency Contact</TableHead>
                 <TableHead className="text-center">Deliveries</TableHead>
                 <TableHead className="text-center">Rating</TableHead>
                 <TableHead className="text-center">Status</TableHead>
+                <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {deliveryPartners.map((partner) => {
+                const partnerId = partner._id || partner.id;
                 const dp = partner.deliveryPartner;
                 const displayName = partner.name || partner.email.split("@")[0] || "Delivery Partner";
                 const isOnline = dp?.duty_status === "on-duty";
                 const rating = dp?.total_ratings || 5.0;
 
                 return (
-                  <TableRow key={partner._id || partner.id} className="hover:bg-muted/30 transition-colors">
+                  <TableRow key={partnerId} className="hover:bg-muted/30 transition-colors">
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
@@ -547,64 +524,19 @@ export function DeliveryPartnersTab() {
                     </TableCell>
 
                     <TableCell>
-                      <div className="space-y-0.5 text-xs max-w-[200px]">
-                        <p
-                          className="font-medium text-foreground flex items-center gap-1.5 truncate"
-                          title={dp?.address?.address}
-                        >
-                          <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
-                          <span className="truncate">{dp?.address?.address || "N/A"}</span>
-                        </p>
-                        <p className="text-[11px] text-muted-foreground truncate pl-5">
-                          {[dp?.address?.city, dp?.address?.pin_code].filter(Boolean).join(" - ") || "N/A"}
-                        </p>
-                      </div>
+                      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+                        {dp?.address?.city || "N/A"}
+                      </span>
                     </TableCell>
 
                     <TableCell>
-                      <div className="space-y-1 text-xs">
+                      <div className="space-y-0.5 text-xs">
                         <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400">
                           <Bike className="w-3 h-3" />
                           {dp?.vehicle_name || "N/A"}
                         </span>
-                        <p className="font-semibold text-foreground">{dp?.vehicle_number || "N/A"}</p>
-                      </div>
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="space-y-0.5 text-xs">
-                        <p className="text-foreground font-medium flex items-center gap-1.5">
-                          <CreditCard className="w-3.5 h-3.5 text-muted-foreground" />
-                          {dp?.aadhar_number || "N/A"}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">DL: {dp?.license_number || "N/A"}</p>
-                      </div>
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="space-y-0.5 text-xs">
-                        <p className="font-medium text-foreground flex items-center gap-1.5">
-                          <Landmark className="w-3.5 h-3.5 text-primary shrink-0" />
-                          {dp?.bank_name || "N/A"}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground font-mono">
-                          A/C: {dp?.account_number || "N/A"}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground uppercase font-mono">
-                          IFSC: {dp?.ifsc_code || "N/A"}
-                        </p>
-                      </div>
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="space-y-0.5 text-xs">
-                        <p className="font-medium text-foreground flex items-center gap-1">
-                          <HeartPulse className="w-3.5 h-3.5 text-rose-500" />
-                          {dp?.emergency_contact_name || "N/A"}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {dp?.emergency_contact_phone || "N/A"}
-                        </p>
+                        <p className="font-mono text-muted-foreground text-[11px]">{dp?.vehicle_number || "N/A"}</p>
                       </div>
                     </TableCell>
 
@@ -636,6 +568,21 @@ export function DeliveryPartnersTab() {
                         />
                         {isOnline ? "On Duty" : "Offline"}
                       </span>
+                    </TableCell>
+
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedPartnerId(partnerId || null);
+                          setIsDetailModalOpen(true);
+                        }}
+                        className="gap-1.5 h-7 px-2.5 text-xs rounded-lg hover:bg-primary/10 hover:text-primary"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Details</span>
+                      </Button>
                     </TableCell>
                   </TableRow>
                 );
@@ -722,6 +669,12 @@ export function DeliveryPartnersTab() {
       <AddDeliveryPartnerModal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
+      />
+
+      <DeliveryPartnerDetailModal
+        open={isDetailModalOpen}
+        onOpenChange={setIsDetailModalOpen}
+        partnerId={selectedPartnerId}
       />
     </div>
   );
