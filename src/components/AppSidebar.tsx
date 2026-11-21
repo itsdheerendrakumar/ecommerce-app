@@ -23,9 +23,9 @@ import {
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSkeleton,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "./ui/button";
 import { LogOut, LogIn } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
@@ -35,6 +35,7 @@ import { cn, getInitials } from "@/lib/utils";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
+  const storeUser = useAppStore((state) => state.user);
   const clearUser = useAppStore((state) => state.clearUser);
   const router = useRouter();
   const { profileQuery } = useMe();
@@ -44,7 +45,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     setMounted(true);
   }, []);
 
-  const rawUser = profileQuery.data?.user;
+  const rawUser = storeUser ?? profileQuery.data?.user ?? null;
   const user = mounted ? rawUser : null;
   const isAuthenticated = !!user;
   const role = user?.role;
@@ -54,7 +55,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     onSuccess: () => {
       localStorage.clear();
       clearUser();
-      router.push("/login");
+      window.location.href = "/login";
     },
   });
 
@@ -203,9 +204,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarGroupLabel>{activeConfig.sectionLabel}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {Array.from({ length: 5 }).map((_, i) => (
+                {["w-3/4", "w-2/3", "w-4/5", "w-1/2", "w-3/5"].map((widthClass, i) => (
                   <SidebarMenuItem key={i}>
-                    <SidebarMenuSkeleton showIcon />
+                    <div className="flex h-8 items-center gap-2 rounded-md px-2">
+                      <Skeleton className="size-4 rounded-md shrink-0" />
+                      <Skeleton className={cn("h-4 flex-1", widthClass)} />
+                    </div>
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
