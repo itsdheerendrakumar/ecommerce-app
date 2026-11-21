@@ -1,7 +1,7 @@
-"use client";
+import AdminSettingsClient from "./AdminSettingsClient";
 
-import { ProfileSettings } from "@/components/common/ProfileSettings";
+export const instant = false;
 
-export default function AdminSettingsPage() {
-  return <ProfileSettings role="admin" />;
+export default function Page() {
+  return <AdminSettingsClient />;
 }

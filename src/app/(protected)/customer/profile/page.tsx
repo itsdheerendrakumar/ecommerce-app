@@ -1,7 +1,7 @@
-"use client";
+import CustomerProfileClient from "./CustomerProfileClient";
 
-import { ProfileSettings } from "@/components/common/ProfileSettings";
+export const instant = false;
 
-export default function CustomerProfilePage() {
-  return <ProfileSettings role="customer" />;
+export default function Page() {
+  return <CustomerProfileClient />;
 }

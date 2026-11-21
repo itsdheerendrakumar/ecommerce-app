@@ -170,7 +170,6 @@ export const useAppStore = create<AppState>()(
     {
       name: 'ecommerce-app-storage',
       partialize: (state) => ({
-        user: state.user,
         cart: state.cart,
         wishlist: state.wishlist,
       }),

@@ -5,7 +5,10 @@ import { queryKeys } from "@/constants/query-key";
 export function useMe() {
     const profileQuery = useQuery({
         queryKey: [queryKeys.me],
-        queryFn: getProfile
+        queryFn: getProfile,
+        retry: false,
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
     });
     const user = profileQuery.data?.user ?? profileQuery.data?.data?.data ?? null;
     return { profileQuery, user };

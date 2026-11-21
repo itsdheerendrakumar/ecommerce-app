@@ -3,6 +3,8 @@ import { ProtectedRouteProvider } from "@/components/providers/ProtectedRoutePro
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ProtectedHeader } from "@/components/layout/ProtectedHeader";
 
+export const instant = false;
+
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRouteProvider>

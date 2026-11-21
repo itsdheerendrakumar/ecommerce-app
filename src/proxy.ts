@@ -51,7 +51,7 @@ export function proxy(request: NextRequest) {
 
   if (isProtected) {
     if (!payload) {
-      const response = NextResponse.redirect(new URL("/login", request.url));
+      const response = NextResponse.redirect(new URL("/", request.url));
       response.cookies.delete("access_token");
       response.cookies.delete("refresh_token");
       return response;

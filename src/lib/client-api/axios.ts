@@ -58,11 +58,13 @@ const handleSessionExpired = () => {
     if (typeof window !== "undefined") {
         const currentPath = window.location.pathname;
         localStorage.clear();
-        if (currentPath !== "/login" && currentPath !== "/signup") {
-            const redirectUrl = encodeURIComponent(
-                currentPath + window.location.search
-            );
-            window.location.href = `/login?redirect=${redirectUrl}`;
+        const isProtectedRoute =
+            currentPath.startsWith("/admin") ||
+            currentPath.startsWith("/customer") ||
+            currentPath.startsWith("/delivery");
+
+        if (isProtectedRoute) {
+            window.location.href = "/";
         }
     }
 };

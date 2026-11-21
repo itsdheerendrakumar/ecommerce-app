@@ -1,7 +1,7 @@
-"use client";
+import DeliveryProfileClient from "./DeliveryProfileClient";
 
-import { ProfileSettings } from "@/components/common/ProfileSettings";
+export const instant = false;
 
-export default function DeliveryProfilePage() {
-  return <ProfileSettings role="delivery-partner" />;
+export default function Page() {
+  return <DeliveryProfileClient />;
 }
