@@ -6,7 +6,6 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { ShoppingBag, Trash2, ArrowRight } from "lucide-react";
-import { PublicNavbar } from "@/components/layout/Navbar";
 
 export default function Cart() {
   const { cart, removeFromCart, updateCartQuantity } = useAppStore();
@@ -15,8 +14,7 @@ export default function Cart() {
   const total = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <PublicNavbar />
+    <div className="flex flex-col bg-background text-foreground">
       <main className="container mx-auto px-4 md:px-8 py-8 flex-1 max-w-5xl space-y-8">
         <div className="flex items-center justify-between border-b pb-4">
           <div>

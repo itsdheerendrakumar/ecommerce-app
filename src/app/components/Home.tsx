@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Truck, ShieldCheck, ShoppingBag, Star, Heart } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
-import { PublicNavbar } from "@/components/layout/Navbar";
 import { useQuery } from "@tanstack/react-query";
 import { getProductsApi } from "@/lib/client-api/product";
 import { queryKeys } from "@/constants/query-key";
@@ -22,9 +21,7 @@ export default function Home() {
     const trending = products.slice(0, 4);
 
     return (
-        <div className="min-h-screen flex flex-col bg-background text-foreground">
-            <PublicNavbar />
-
+        <div className="flex flex-col bg-background text-foreground">
             {/* Hero Section */}
             <section className="relative w-full min-h-[80vh] flex items-center bg-muted/20 overflow-hidden">
                 <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/3 w-[600px] h-[600px] bg-primary/15 rounded-full blur-[120px] pointer-events-none" />

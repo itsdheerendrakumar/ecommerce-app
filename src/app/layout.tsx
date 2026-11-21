@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import TanstackProvider from "@/components/providers/Tanstack";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { AppShell } from "@/components/layout/AppShell";
+import { Suspense } from "react";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -26,7 +28,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Toaster position="top-right" richColors theme="system" />
         <TanstackProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <Suspense fallback={null}>
+              <AppShell>{children}</AppShell>
+            </Suspense>
+          </AuthProvider>
         </TanstackProvider>
       </body>
     </html>

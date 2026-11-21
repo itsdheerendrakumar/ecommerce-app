@@ -47,11 +47,19 @@ export const APP_ROUTES = {
   },
 } as const;
 
+export type UserRole = "admin" | "customer" | "delivery-partner";
+
 export interface NavItem {
   name: string;
   path: string;
   icon: LucideIcon;
   badge?: "cart" | "wishlist";
+  isProtected?: boolean;
+}
+
+export interface NavSection {
+  label: string;
+  items: NavItem[];
 }
 
 export interface RoleSidebarConfig {
@@ -60,31 +68,58 @@ export interface RoleSidebarConfig {
   headerSubtitle: string;
   headerIcon: LucideIcon;
   items: NavItem[];
+  sections?: NavSection[];
 }
 
-export const customerNavItems: NavItem[] = [
-  { name: "Home", path: APP_ROUTES.PUBLIC.HOME, icon: Home },
-  { name: "Shop Catalog", path: APP_ROUTES.PUBLIC.SHOP, icon: ShoppingBag },
-  { name: "My Account", path: APP_ROUTES.CUSTOMER.PORTAL, icon: User },
-  { name: "My Orders", path: APP_ROUTES.CUSTOMER.ORDERS, icon: PackageCheck },
-  { name: "Wishlist", path: APP_ROUTES.CUSTOMER.WISHLIST, icon: Heart, badge: "wishlist" },
-  { name: "Shopping Cart", path: APP_ROUTES.PUBLIC.CART, icon: ShoppingCart, badge: "cart" },
-  { name: "Profile Settings", path: APP_ROUTES.CUSTOMER.PROFILE, icon: Settings },
+export const customerNavSections: NavSection[] = [
+  {
+    label: "Explore & Shop",
+    items: [
+      { name: "Home", path: APP_ROUTES.PUBLIC.HOME, icon: Home, isProtected: false },
+      { name: "Shop Catalog", path: APP_ROUTES.PUBLIC.SHOP, icon: ShoppingBag, isProtected: false },
+    ],
+  },
+  {
+    label: "My Shopping",
+    items: [
+      { name: "Shopping Cart", path: APP_ROUTES.PUBLIC.CART, icon: ShoppingCart, badge: "cart", isProtected: false },
+      { name: "Saved Wishlist", path: APP_ROUTES.CUSTOMER.WISHLIST, icon: Heart, badge: "wishlist", isProtected: true },
+    ],
+  },
+  {
+    label: "Account & Orders",
+    items: [
+      { name: "Dashboard", path: APP_ROUTES.CUSTOMER.PORTAL, icon: User, isProtected: true },
+      { name: "Order History", path: APP_ROUTES.CUSTOMER.ORDERS, icon: PackageCheck, isProtected: true },
+      { name: "Profile Settings", path: APP_ROUTES.CUSTOMER.PROFILE, icon: Settings, isProtected: true },
+    ],
+  },
 ];
 
+export const customerNavItems: NavItem[] = customerNavSections.flatMap((s) => s.items);
+
+export const guestNavSections: NavSection[] = customerNavSections
+  .map((section) => ({
+    label: section.label,
+    items: section.items.filter((item) => !item.isProtected),
+  }))
+  .filter((section) => section.items.length > 0);
+
+export const guestNavItems: NavItem[] = guestNavSections.flatMap((s) => s.items);
+
 export const adminNavItems: NavItem[] = [
-  { name: "Overview", path: APP_ROUTES.ADMIN.PORTAL, icon: LayoutDashboard },
-  { name: "Products", path: APP_ROUTES.ADMIN.PRODUCTS, icon: Package },
-  { name: "Orders", path: APP_ROUTES.ADMIN.ORDERS, icon: ShoppingCart },
-  { name: "Users", path: APP_ROUTES.ADMIN.USERS, icon: Users },
-  { name: "Profile Settings", path: APP_ROUTES.ADMIN.SETTINGS, icon: Settings },
+  { name: "Overview", path: APP_ROUTES.ADMIN.PORTAL, icon: LayoutDashboard, isProtected: true },
+  { name: "Products", path: APP_ROUTES.ADMIN.PRODUCTS, icon: Package, isProtected: true },
+  { name: "Orders", path: APP_ROUTES.ADMIN.ORDERS, icon: ShoppingCart, isProtected: true },
+  { name: "Users", path: APP_ROUTES.ADMIN.USERS, icon: Users, isProtected: true },
+  { name: "Profile Settings", path: APP_ROUTES.ADMIN.SETTINGS, icon: Settings, isProtected: true },
 ];
 
 export const deliveryNavItems: NavItem[] = [
-  { name: "Active Deliveries", path: APP_ROUTES.DELIVERY.PORTAL, icon: LayoutDashboard },
-  { name: "Order History", path: APP_ROUTES.DELIVERY.HISTORY, icon: History },
-  { name: "Earnings", path: APP_ROUTES.DELIVERY.EARNINGS, icon: DollarSign },
-  { name: "Profile", path: APP_ROUTES.DELIVERY.PROFILE, icon: User },
+  { name: "Active Deliveries", path: APP_ROUTES.DELIVERY.PORTAL, icon: LayoutDashboard, isProtected: true },
+  { name: "Order History", path: APP_ROUTES.DELIVERY.HISTORY, icon: History, isProtected: true },
+  { name: "Earnings", path: APP_ROUTES.DELIVERY.EARNINGS, icon: DollarSign, isProtected: true },
+  { name: "Profile", path: APP_ROUTES.DELIVERY.PROFILE, icon: User, isProtected: true },
 ];
 
 export const SIDEBAR_ROLE_CONFIGS: Record<string, RoleSidebarConfig> = {
@@ -108,5 +143,33 @@ export const SIDEBAR_ROLE_CONFIGS: Record<string, RoleSidebarConfig> = {
     headerSubtitle: "Customer Account",
     headerIcon: ShoppingBag,
     items: customerNavItems,
+    sections: customerNavSections,
+  },
+  guest: {
+    sectionLabel: "StoreFront",
+    headerTitle: "StoreFront",
+    headerSubtitle: "Welcome Guest",
+    headerIcon: ShoppingBag,
+    items: guestNavItems,
+    sections: guestNavSections,
   },
 };
+
+export function getSidebarRoleConfig(
+  role?: string | null,
+  isAuthenticated = false
+): RoleSidebarConfig {
+  if (!isAuthenticated) {
+    return SIDEBAR_ROLE_CONFIGS.guest;
+  }
+
+  if (role === "admin") {
+    return SIDEBAR_ROLE_CONFIGS.admin;
+  }
+
+  if (role === "delivery-partner") {
+    return SIDEBAR_ROLE_CONFIGS["delivery-partner"];
+  }
+
+  return SIDEBAR_ROLE_CONFIGS.customer;
+}

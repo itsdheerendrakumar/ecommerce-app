@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { Heart, Search, ArrowUpDown, SlidersHorizontal, X } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 import { Button } from "@/components/ui/button";
-import { PublicNavbar } from "@/components/layout/Navbar";
 import { useQuery } from "@tanstack/react-query";
 import { getProductsApi } from "@/lib/client-api/product";
 import { queryKeys } from "@/constants/query-key";
@@ -94,9 +93,7 @@ export default function Shop() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <PublicNavbar />
-
+    <div className="flex flex-col bg-background text-foreground">
       <main className="container mx-auto px-4 md:px-8 py-8 flex-1 space-y-8 max-w-7xl">
         {/* Banner */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-950 p-8 md:p-12 text-white shadow-xl">

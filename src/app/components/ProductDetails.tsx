@@ -6,7 +6,6 @@ import { useAppStore } from "@/store/useAppStore";
 import { Button } from "@/components/ui/button";
 import { Star, Truck, Shield, ArrowLeft, Heart, Check, ShoppingCart, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { PublicNavbar } from "@/components/layout/Navbar";
 import { useQuery } from "@tanstack/react-query";
 import { getProductByIdApi } from "@/lib/client-api/product";
 import { queryKeys } from "@/constants/query-key";
@@ -30,25 +29,19 @@ export default function ProductDetails() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <PublicNavbar />
-        <div className="flex flex-1 flex-col items-center justify-center p-8 text-center space-y-4">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-muted-foreground text-sm">Loading product details...</p>
-        </div>
+      <div className="flex flex-1 flex-col items-center justify-center p-8 text-center space-y-4 min-h-[50vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <p className="text-muted-foreground text-sm">Loading product details...</p>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <PublicNavbar />
-        <div className="flex flex-1 flex-col items-center justify-center p-8 text-center space-y-4">
-          <h2 className="text-2xl font-bold">Product Not Found</h2>
-          <p className="text-muted-foreground text-sm">The product you are looking for does not exist or has been removed.</p>
-          <Button onClick={() => router.push("/shop")}>Back to Shop</Button>
-        </div>
+      <div className="flex flex-1 flex-col items-center justify-center p-8 text-center space-y-4 min-h-[50vh]">
+        <h2 className="text-2xl font-bold">Product Not Found</h2>
+        <p className="text-muted-foreground text-sm">The product you are looking for does not exist or has been removed.</p>
+        <Button onClick={() => router.push("/shop")}>Back to Shop</Button>
       </div>
     );
   }
@@ -65,8 +58,7 @@ export default function ProductDetails() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <PublicNavbar />
+    <div className="flex flex-col bg-background text-foreground">
       <main className="container mx-auto px-4 md:px-8 py-8 flex-1 space-y-8">
         <Button
           variant="ghost"
