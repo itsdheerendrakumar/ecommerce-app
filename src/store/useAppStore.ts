@@ -20,17 +20,22 @@ export interface Message {
 
 export interface Product {
   id: string;
+  _id?: string;
   name: string;
-  shortDescription: string;
+  shortDescription?: string;
   description: string;
   price: number;
   originalPrice?: number;
   images: string[];
+  rawImages?: any[];
   category: string;
   stock: number;
-  rating: number;
-  reviews: Review[];
-  features: string[];
+  rating?: number;
+  reviews?: Review[];
+  features?: string[];
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Order {
@@ -51,7 +56,6 @@ interface AppState {
   clearUser: () => void;
 
   // E-commerce state
-  products: Product[];
   orders: Order[];
   cart: { product: Product; quantity: number }[];
   wishlist: string[];
@@ -66,92 +70,6 @@ interface AppState {
   sendMessage: (orderId: string, senderId: string, text: string) => void;
 }
 
-const mockProducts: Product[] = [
-  { 
-    id: 'p1', 
-    name: 'Sony WH-1000XM5 Wireless Headphones', 
-    shortDescription: 'Industry leading noise canceling headphones.',
-    description: 'The WH-1000XM5 headphones rewrite the rules for distraction-free listening. Two processors control 8 microphones for unprecedented noise cancellation and exceptional call quality.', 
-    price: 348.00, 
-    originalPrice: 399.00,
-    category: 'Electronics', 
-    images: ['https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=800&q=80', 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'],
-    stock: 15,
-    rating: 4.8,
-    features: ['Industry Leading NC', '30 Hour Battery', 'Ultra Comfortable', 'Multipoint Connection'],
-    reviews: [
-      { id: 'r1', userName: 'Alice', rating: 5, comment: 'Best headphones I have ever used.', date: '2023-10-01' }
-    ]
-  },
-  { 
-    id: 'p2', 
-    name: 'Apple Watch Series 9', 
-    shortDescription: 'Smarter, brighter, mightier.',
-    description: 'The most powerful chip in Apple Watch ever. A magical new way to use your watch without touching the screen. A display that’s twice as bright.', 
-    price: 399.00, 
-    category: 'Wearables', 
-    images: ['https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=800&q=80', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80'],
-    stock: 42,
-    rating: 4.9,
-    features: ['S9 SiP', 'Double Tap Gesture', 'Blood Oxygen App', 'ECG App'],
-    reviews: []
-  },
-  { 
-    id: 'p3', 
-    name: 'Herman Miller Aeron Chair', 
-    shortDescription: 'The pinnacle of ergonomic seating.',
-    description: 'Aeron’s innovative design provides ideal support for your back and encourages good posture. Fully adjustable and highly breathable.', 
-    price: 1250.00,
-    originalPrice: 1400.00, 
-    category: 'Furniture', 
-    images: ['https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?w=800&q=80'],
-    stock: 5,
-    rating: 4.7,
-    features: ['PostureFit SL', 'Pellicle Suspension', 'Fully Adjustable Arms', 'Tilt Limiter'],
-    reviews: []
-  },
-  { 
-    id: 'p4', 
-    name: 'Keychron Q1 Pro Mechanical Keyboard', 
-    shortDescription: 'Custom wireless mechanical keyboard.',
-    description: 'A fully customizable 75% layout wireless mechanical keyboard with QMK/VIA support, full aluminum CNC machined body.', 
-    price: 199.00, 
-    category: 'Accessories', 
-    images: ['https://images.unsplash.com/photo-1595225476474-87563907a212?w=800&q=80'],
-    stock: 20,
-    rating: 4.6,
-    features: ['Wireless/Wired', 'QMK/VIA Support', 'Gasket Mount', 'Hot-swappable'],
-    reviews: []
-  },
-  { 
-    id: 'p5', 
-    name: 'Nike Air Max 270', 
-    shortDescription: 'Lifestyle meets performance.',
-    description: 'Boasting the first-ever Max Air unit created specifically for Nike Sportswear, it delivers visible air under every step.', 
-    price: 160.00, 
-    category: 'Fashion', 
-    images: ['https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80'],
-    stock: 120,
-    rating: 4.5,
-    features: ['Max Air 270 unit', 'Woven fabric upper', 'Foam midsole', 'Rubber outsole'],
-    reviews: []
-  },
-  { 
-    id: 'p6', 
-    name: 'Minimalist Ceramic Vase', 
-    shortDescription: 'Elegant decor for modern homes.',
-    description: 'Hand-crafted ceramic vase with a matte finish. Perfect for dried flowers or as a standalone architectural piece.', 
-    price: 45.00, 
-    originalPrice: 60.00,
-    category: 'Home Decor', 
-    images: ['https://images.unsplash.com/photo-1612152605347-f93296cb657d?w=800&q=80'],
-    stock: 8,
-    rating: 4.2,
-    features: ['Handmade', 'Matte Finish', 'Water resistant interior'],
-    reviews: []
-  }
-];
-
 const mockOrders: Order[] = [
   { id: 'ORD-8921', customerId: '1', products: [{ productId: 'p1', quantity: 1 }], total: 348.00, status: 'processing', address: '123 Main St, NY', date: '2023-10-10' },
   { id: 'ORD-7642', customerId: '1', products: [{ productId: 'p5', quantity: 2 }], total: 320.00, status: 'out_for_delivery', deliveryPartnerId: '3', address: '456 Park Ave, NY', date: '2023-10-09' },
@@ -165,8 +83,7 @@ export const useAppStore = create<AppState>()(
       setUser: (user) => set({ user }),
       clearUser: () => set({ user: null }),
 
-      // Products & Orders
-      products: mockProducts,
+      // Orders & Customer State
       orders: mockOrders,
       cart: [],
       wishlist: [],

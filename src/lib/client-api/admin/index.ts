@@ -37,3 +37,5 @@ export async function getDeliveryPartnerById(id: string): Promise<GetDeliveryPar
 
 export const getDeliveryPartner = getDeliveryPartners;
 export const getDeliveryPartnerDetail = getDeliveryPartnerById;
+
+export * from "./product";

@@ -4,9 +4,18 @@ import { useAppStore } from "@/store/useAppStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DollarSign, ShoppingCart, Package } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getAdminProductsApi } from "@/lib/client-api/admin";
+import { queryKeys } from "@/constants/query-key";
 
 export default function AdminPage() {
-  const { orders, products, updateOrderStatus } = useAppStore();
+  const { orders, updateOrderStatus } = useAppStore();
+
+  const { data: productsData } = useQuery({
+    queryKey: [queryKeys.adminProducts],
+    queryFn: getAdminProductsApi,
+  });
+  const productsCount = productsData?.data?.data?.length ?? 0;
 
   const assignToRider = (orderId: string) => {
     updateOrderStatus(orderId, "out_for_delivery", "3");
@@ -48,7 +57,7 @@ export default function AdminPage() {
             <Package className="w-4 h-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-black text-foreground">{products.length}</p>
+            <p className="text-3xl font-black text-foreground">{productsCount}</p>
           </CardContent>
         </Card>
       </div>

@@ -73,3 +73,99 @@ export interface GetDeliveryPartnersParams {
   startDate?: string;
   endDate?: string;
 }
+
+export interface ProductImageItem {
+  publicId: string;
+  secureUrl: string;
+  isPrimary: boolean;
+  position: number;
+}
+
+export interface ProductItem {
+  _id: string;
+  name: string;
+  shortDescription?: string;
+  description: string;
+  price: number;
+  originalPrice?: number;
+  category: string;
+  stock: number;
+  features?: string[];
+  images: ProductImageItem[];
+  status: "draft" | "published";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateProductDraftResponse {
+  message: string;
+  data?: {
+    data: {
+      productId: string;
+      uploadSessionId: string;
+      expiresAt: string;
+      product: ProductItem;
+    };
+  };
+}
+
+export interface CloudinarySignedConfig {
+  apiKey: string;
+  cloudName: string;
+  signature: string;
+  timestamp: number;
+  folder: string;
+  publicId: string;
+  tags?: string;
+  context?: string;
+}
+
+export interface SignatureItem {
+  id: string;
+  signatureConfig: CloudinarySignedConfig;
+}
+
+export interface GenerateSignaturesResponse {
+  message: string;
+  data?: {
+    data: {
+      sessionId: string;
+      signatures: SignatureItem[];
+    };
+  };
+}
+
+export interface RegisterAssetResponse {
+  message: string;
+  data?: {
+    data: {
+      publicId: string;
+      secureUrl: string;
+      bytes?: number;
+      format?: string;
+      width?: number;
+      height?: number;
+    };
+  };
+}
+
+export interface UpdateProductImagesResponse {
+  message: string;
+  data?: {
+    data: ProductItem;
+  };
+}
+
+export interface PublishProductResponse {
+  message: string;
+  data?: {
+    data: ProductItem;
+  };
+}
+
+export interface GetAdminProductsResponse {
+  message: string;
+  data?: {
+    data: ProductItem[];
+  };
+}

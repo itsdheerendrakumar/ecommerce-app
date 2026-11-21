@@ -4,20 +4,41 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAppStore } from "@/store/useAppStore";
 import { Button } from "@/components/ui/button";
-import { Star, Truck, Shield, ArrowLeft, Heart, Check, ShoppingCart } from "lucide-react";
+import { Star, Truck, Shield, ArrowLeft, Heart, Check, ShoppingCart, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { PublicNavbar } from "@/components/layout/Navbar";
+import { useQuery } from "@tanstack/react-query";
+import { getProductByIdApi } from "@/lib/client-api/product";
+import { queryKeys } from "@/constants/query-key";
 
 export default function ProductDetails() {
   const params = useParams();
   const id = params?.id as string;
   const router = useRouter();
-  const { products, addToCart, toggleWishlist, wishlist } = useAppStore();
+  const { addToCart, toggleWishlist, wishlist } = useAppStore();
 
-  const product = products.find((p) => p.id === id);
-  const [mainImage, setMainImage] = useState(product?.images[0] || "");
+  const { data, isLoading } = useQuery({
+    queryKey: [queryKeys.product, id],
+    queryFn: () => getProductByIdApi(id),
+    enabled: !!id,
+  });
+
+  const product = data?.data?.data;
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <PublicNavbar />
+        <div className="flex flex-1 flex-col items-center justify-center p-8 text-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-muted-foreground text-sm">Loading product details...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -33,6 +54,7 @@ export default function ProductDetails() {
   }
 
   const isWished = wishlist.includes(product.id);
+  const mainImage = selectedImage || product.images?.[0] || "";
 
   const handleAddToCart = () => {
     for (let i = 0; i < qty; i++) {
@@ -64,7 +86,7 @@ export default function ProductDetails() {
               className="aspect-square bg-muted rounded-3xl overflow-hidden border relative group shadow-sm"
             >
               <img
-                src={mainImage || product.images[0]}
+                src={mainImage}
                 alt={product.name}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -81,17 +103,17 @@ export default function ProductDetails() {
               </button>
             </motion.div>
 
-            {product.images.length > 1 && (
-              <div className="grid grid-cols-4 gap-3">
+            {product.images && product.images.length > 1 && (
+              <div className="grid grid-cols-5 gap-3">
                 {product.images.map((img, i) => (
                   <div
                     key={i}
                     className={`aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition-all ${
-                      (mainImage || product.images[0]) === img
+                      mainImage === img
                         ? "border-primary ring-2 ring-primary/20"
                         : "border-transparent opacity-70 hover:opacity-100"
                     }`}
-                    onClick={() => setMainImage(img)}
+                    onClick={() => setSelectedImage(img)}
                   >
                     <img src={img} className="w-full h-full object-cover" alt="" />
                   </div>
@@ -109,7 +131,7 @@ export default function ProductDetails() {
                 </span>
                 <div className="flex items-center text-amber-500 text-xs font-semibold">
                   <Star className="w-3.5 h-3.5 fill-current mr-1" />
-                  {product.rating} ({product.reviews.length} reviews)
+                  {product.rating || 4.8} ({product.reviews?.length || 0} reviews)
                 </div>
               </div>
               <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
@@ -197,14 +219,16 @@ export default function ProductDetails() {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {product.description}
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
-                {product.features.map((feature, i) => (
-                  <div key={i} className="flex items-center gap-2 text-xs font-medium text-foreground bg-muted/40 p-3 rounded-xl border">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                    <span>{feature}</span>
-                  </div>
-                ))}
-              </div>
+              {product.features && product.features.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
+                  {product.features.map((feature, i) => (
+                    <div key={i} className="flex items-center gap-2 text-xs font-medium text-foreground bg-muted/40 p-3 rounded-xl border">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

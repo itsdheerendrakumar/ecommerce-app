@@ -7,13 +7,23 @@ import { Heart, Search, ArrowUpDown, SlidersHorizontal, X } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 import { Button } from "@/components/ui/button";
 import { PublicNavbar } from "@/components/layout/Navbar";
+import { useQuery } from "@tanstack/react-query";
+import { getProductsApi } from "@/lib/client-api/product";
+import { queryKeys } from "@/constants/query-key";
 
 export default function Shop() {
-  const { products, toggleWishlist, wishlist } = useAppStore();
+  const { toggleWishlist, wishlist } = useAppStore();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [sortBy, setSortBy] = useState("featured");
+
+  const { data, isLoading } = useQuery({
+    queryKey: [queryKeys.products],
+    queryFn: () => getProductsApi(),
+  });
+
+  const products = useMemo(() => data?.data?.data || [], [data]);
 
   const categories = useMemo(
     () => ["All", ...Array.from(new Set(products.map((p) => p.category)))],
@@ -33,7 +43,7 @@ export default function Shop() {
         (p) =>
           p.name.toLowerCase().includes(q) ||
           p.category.toLowerCase().includes(q) ||
-          p.shortDescription.toLowerCase().includes(q)
+          (p.shortDescription && p.shortDescription.toLowerCase().includes(q))
       );
     }
 
@@ -42,7 +52,7 @@ export default function Shop() {
     } else if (sortBy === "price-high") {
       result = [...result].sort((a, b) => b.price - a.price);
     } else if (sortBy === "rating") {
-      result = [...result].sort((a, b) => b.rating - a.rating);
+      result = [...result].sort((a, b) => (b.rating || 0) - (a.rating || 0));
     }
 
     return result;
@@ -53,7 +63,7 @@ export default function Shop() {
       <PublicNavbar />
 
       <main className="container mx-auto px-4 md:px-8 py-8 flex-1 space-y-8 max-w-7xl">
-        {/* Banner from image with Public Catalog removed */}
+        {/* Banner */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-950 p-8 md:p-12 text-white shadow-xl">
           <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10 max-w-2xl space-y-3">
@@ -142,12 +152,18 @@ export default function Shop() {
         </div>
 
         {/* Product Grid Area */}
-        {filteredProducts.length === 0 ? (
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <div key={i} className="h-80 rounded-2xl bg-muted/40 animate-pulse border" />
+            ))}
+          </div>
+        ) : filteredProducts.length === 0 ? (
           <div className="text-center py-20 rounded-2xl border border-dashed bg-card space-y-3">
             <SlidersHorizontal className="w-8 h-8 mx-auto text-muted-foreground" />
             <h3 className="font-bold text-base text-foreground">No matching products found</h3>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              We couldn't find any products matching your filters. Try clearing your search query or choosing another category.
+              We couldn&apos;t find any products matching your filters. Try clearing your search query or choosing another category.
             </p>
             <Button
               variant="outline"
@@ -165,6 +181,7 @@ export default function Shop() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {filteredProducts.map((product, index) => {
               const isWished = wishlist.includes(product.id);
+              const primaryImg = product.images?.[0] || "";
 
               return (
                 <motion.div
@@ -180,7 +197,7 @@ export default function Shop() {
                     onClick={() => router.push(`/product/${product.id}`)}
                   >
                     <img
-                      src={product.images[0]}
+                      src={primaryImg}
                       alt={product.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
@@ -197,10 +214,11 @@ export default function Shop() {
                         e.stopPropagation();
                         toggleWishlist(product.id);
                       }}
-                      className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all shadow-xs ${isWished
-                        ? "bg-rose-500 text-white"
-                        : "bg-background/80 text-muted-foreground hover:bg-background hover:text-foreground"
-                        }`}
+                      className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all shadow-xs ${
+                        isWished
+                          ? "bg-rose-500 text-white"
+                          : "bg-background/80 text-muted-foreground hover:bg-background hover:text-foreground"
+                      }`}
                       title={isWished ? "Remove from wishlist" : "Add to wishlist"}
                     >
                       <Heart className={`w-4 h-4 ${isWished ? "fill-current" : ""}`} />

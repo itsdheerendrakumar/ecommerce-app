@@ -4,11 +4,20 @@ import { useAppStore } from "@/store/useAppStore";
 import { useMe } from "@/hooks/useMe";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Package, Truck, CheckCircle, PackageCheck } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getProductsApi } from "@/lib/client-api/product";
+import { queryKeys } from "@/constants/query-key";
 
 export default function CustomerOrdersPage() {
-  const { orders, products } = useAppStore();
+  const { orders } = useAppStore();
   const { profileQuery } = useMe();
   const user = profileQuery.data?.user;
+
+  const { data: productsData } = useQuery({
+    queryKey: [queryKeys.products],
+    queryFn: () => getProductsApi(),
+  });
+  const products = productsData?.data?.data || [];
 
   const myOrders = orders.filter((o) => o.customerId === user?._id || o.customerId === "1");
 
@@ -65,10 +74,11 @@ export default function CustomerOrdersPage() {
                   {order.products.map((op) => {
                     const product = products.find((p) => p.id === op.productId);
                     if (!product) return null;
+                    const primaryImg = product.images?.[0] || "";
                     return (
                       <div key={op.productId} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
                         <img
-                          src={product.images[0]}
+                          src={primaryImg}
                           alt={product.name}
                           className="w-14 h-14 object-cover rounded-xl border bg-muted shrink-0"
                         />

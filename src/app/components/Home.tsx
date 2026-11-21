@@ -3,16 +3,23 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, ShieldCheck, Truck, Star, ShoppingBag, Heart } from "lucide-react";
+import { ArrowRight, Truck, ShieldCheck, ShoppingBag, Star, Heart } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
-import { useRouter } from "next/navigation";
 import { PublicNavbar } from "@/components/layout/Navbar";
+import { useQuery } from "@tanstack/react-query";
+import { getProductsApi } from "@/lib/client-api/product";
+import { queryKeys } from "@/constants/query-key";
 
 export default function Home() {
-    const { products, wishlist, toggleWishlist, user } = useAppStore();
-    const trending = products.slice(0, 4);
-    const router = useRouter();
+    const { wishlist, toggleWishlist } = useAppStore();
 
+    const { data, isLoading } = useQuery({
+        queryKey: [queryKeys.products],
+        queryFn: () => getProductsApi(),
+    });
+
+    const products = data?.data?.data || [];
+    const trending = products.slice(0, 4);
 
     return (
         <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -106,8 +113,13 @@ export default function Home() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {trending.map((product) => {
+                        {isLoading ? (
+                            [1, 2, 3, 4].map((i) => (
+                                <div key={i} className="h-72 rounded-2xl bg-muted/40 animate-pulse border" />
+                            ))
+                        ) : trending.map((product) => {
                             const isWished = wishlist.includes(product.id);
+                            const primaryImage = product.images?.[0] || "";
                             return (
                                 <div
                                     key={product.id}
@@ -115,7 +127,7 @@ export default function Home() {
                                 >
                                     <div className="relative aspect-square overflow-hidden bg-muted">
                                         <img
-                                            src={product.images[0]}
+                                            src={primaryImage}
                                             alt={product.name}
                                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                         />
