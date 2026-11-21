@@ -1,17 +1,32 @@
 import { asyncHandler } from "@/lib/api-async-handler";
 import { apiResponse } from "@/lib/api-response";
 import { connectDb } from "@/lib/db";
+import { getOptionalUser } from "@/lib/validateToken";
 import Product, { IProductImage } from "@/models/product.model";
 
 export const GET = asyncHandler(async (request: Request) => {
   await connectDb();
 
+  const user = await getOptionalUser();
+  const isAdmin = user?.role === "admin";
+
   const { searchParams } = new URL(request.url);
   const category = searchParams.get("category");
   const search = searchParams.get("search");
   const sortBy = searchParams.get("sortBy");
+  const status = searchParams.get("status");
 
-  const query: Record<string, any> = { status: "published" };
+  const query: Record<string, any> = {};
+
+  // Draft items will be visible ONLY to the admin user
+  if (isAdmin) {
+    if (status && status !== "all") {
+      query.status = status;
+    }
+  } else {
+    // Non-admin users can ONLY view published products
+    query.status = "published";
+  }
 
   if (category && category !== "All") {
     query.category = category;

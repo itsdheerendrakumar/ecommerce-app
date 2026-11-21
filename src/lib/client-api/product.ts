@@ -5,6 +5,7 @@ export interface GetProductsParams {
   category?: string;
   search?: string;
   sortBy?: string;
+  status?: string;
 }
 
 export interface GetProductsResponse {
@@ -26,6 +27,7 @@ export async function getProductsApi(params?: GetProductsParams): Promise<GetPro
   if (params?.category && params.category !== "All") query.set("category", params.category);
   if (params?.search && params.search.trim()) query.set("search", params.search.trim());
   if (params?.sortBy) query.set("sortBy", params.sortBy);
+  if (params?.status && params.status !== "all") query.set("status", params.status);
 
   const queryString = query.toString();
   const url = queryString ? `/products?${queryString}` : "/products";

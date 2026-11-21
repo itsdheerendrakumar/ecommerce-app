@@ -13,7 +13,7 @@ export default function AdminDashboardClient() {
 
   const { data: productsData } = useQuery({
     queryKey: [queryKeys.adminProducts],
-    queryFn: getAdminProductsApi,
+    queryFn: () => getAdminProductsApi(),
   });
   const productsCount = productsData?.data?.data?.length ?? 0;
 

@@ -1,27 +1,124 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Send, Image as ImageIcon, Sparkles } from "lucide-react";
+import { Plus, Send, Image as ImageIcon, Sparkles, Search, ArrowUpDown, X, SlidersHorizontal } from "lucide-react";
 import { AddProductModal } from "@/components/admin/products/AddProductModal";
+import { ProductDetailsModal } from "@/components/admin/products/ProductDetailsModal";
 import { getAdminProductsApi, publishProductApi } from "@/lib/client-api/admin";
+import type { GetAdminProductsParams } from "@/lib/client-api/admin/product";
 import { queryKeys } from "@/constants/query-key";
 import { toast } from "sonner";
 import { ProductItem } from "@/lib/client-api/admin/types";
+import { useDebounce } from "@/hooks/useDebounce";
 
 export default function AdminProductsClient() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const urlSearch = searchParams.get("search") || "";
+  const urlStatus = searchParams.get("status") || "all";
+  const urlCategory = searchParams.get("category") || "All";
+  const urlSortBy = searchParams.get("sortBy") || "newest";
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(urlSearch);
+  const [statusFilter, setStatusFilter] = useState(urlStatus);
+  const [categoryFilter, setCategoryFilter] = useState(urlCategory);
+  const [sortBy, setSortBy] = useState(urlSortBy);
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
-    queryKey: [queryKeys.adminProducts],
-    queryFn: getAdminProductsApi,
+  const debouncedSearch = useDebounce(searchQuery, 400);
+
+  // Sync state if URL changes externally (e.g. browser back/forward)
+  useEffect(() => {
+    const s = searchParams.get("search") || "";
+    const c = searchParams.get("category") || "All";
+    const st = searchParams.get("status") || "all";
+    const b = searchParams.get("sortBy") || "newest";
+    if (s !== searchQuery && s !== debouncedSearch) setSearchQuery(s);
+    if (c !== categoryFilter) setCategoryFilter(c);
+    if (st !== statusFilter) setStatusFilter(st);
+    if (b !== sortBy) setSortBy(b);
+  }, [searchParams]);
+
+  // Keep search, category, status, and sort in the URL query parameters
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (debouncedSearch && debouncedSearch.trim()) {
+      params.set("search", debouncedSearch.trim());
+    } else {
+      params.delete("search");
+    }
+
+    if (categoryFilter && categoryFilter !== "All") {
+      params.set("category", categoryFilter);
+    } else {
+      params.delete("category");
+    }
+
+    if (statusFilter && statusFilter !== "all") {
+      params.set("status", statusFilter);
+    } else {
+      params.delete("status");
+    }
+
+    if (sortBy && sortBy !== "newest") {
+      params.set("sortBy", sortBy);
+    } else {
+      params.delete("sortBy");
+    }
+
+    const newQuery = params.toString();
+    const currentQuery = searchParams.toString();
+    if (newQuery !== currentQuery) {
+      router.replace(newQuery ? `${pathname}?${newQuery}` : pathname, { scroll: false });
+    }
+  }, [debouncedSearch, categoryFilter, statusFilter, sortBy, pathname, router, searchParams]);
+
+  const filterParams: GetAdminProductsParams = useMemo(() => ({
+    search: debouncedSearch || undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    category: categoryFilter !== "All" ? categoryFilter : undefined,
+    sortBy: sortBy !== "newest" ? sortBy : undefined,
+  }), [debouncedSearch, statusFilter, categoryFilter, sortBy]);
+
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: [queryKeys.adminProducts, filterParams],
+    queryFn: () => getAdminProductsApi(filterParams),
   });
 
+  // Fetch all products once (unfiltered) to derive the category list
+  const { data: allData } = useQuery({
+    queryKey: [queryKeys.adminProducts, "__all_categories__"],
+    queryFn: () => getAdminProductsApi(),
+    staleTime: 60_000,
+  });
+
+  const allProducts: ProductItem[] = allData?.data?.data || [];
   const dbProducts: ProductItem[] = data?.data?.data || [];
   const hasDbProducts = dbProducts.length > 0;
+
+  const categories = useMemo(
+    () => ["All", ...Array.from(new Set(allProducts.map((p) => p.category))).sort()],
+    [allProducts]
+  );
+
+  const hasActiveFilters = debouncedSearch || statusFilter !== "all" || categoryFilter !== "All" || sortBy !== "newest";
+
+  const clearAllFilters = useCallback(() => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setCategoryFilter("All");
+    setSortBy("newest");
+  }, []);
 
   const publishMutation = useMutation({
     mutationFn: (productId: string) => publishProductApi(productId),
@@ -51,7 +148,112 @@ export default function AdminProductsClient() {
         </div>
       </div>
 
+      {/* Search & Filter Controls */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          {/* Search Input */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search products by name, description, category..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-9 pl-9 pr-8 rounded-full border bg-card text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none placeholder:text-muted-foreground/60"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Status Filter */}
+          <div className="flex items-center gap-1.5 bg-card border rounded-lg px-2.5 py-1.5 h-9">
+            <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-transparent text-xs font-semibold focus:outline-none cursor-pointer"
+            >
+              <option value="all">All Status</option>
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+
+          {/* Category Filter */}
+          {categories.length > 1 && (
+            <div className="flex items-center gap-1.5 bg-card border rounded-lg px-2.5 py-1.5 h-9">
+              <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="bg-transparent text-xs font-semibold focus:outline-none cursor-pointer"
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat === "All" ? "All Categories" : cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Sort Selector */}
+          <div className="flex items-center gap-1.5 bg-card border rounded-lg px-2.5 py-1.5 h-9">
+            <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="bg-transparent text-xs font-semibold focus:outline-none cursor-pointer"
+            >
+              <option value="newest">Newest First</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="name-asc">Name: A–Z</option>
+              <option value="name-desc">Name: Z–A</option>
+              <option value="stock-low">Stock: Low to High</option>
+              <option value="stock-high">Stock: High to Low</option>
+            </select>
+          </div>
+
+          {/* Clear Filters */}
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-full text-xs h-9 px-3"
+              onClick={clearAllFilters}
+            >
+              <X className="w-3 h-3 mr-1" /> Clear
+            </Button>
+          )}
+        </div>
+
+        {/* Result count + loading indicator */}
+        {!isLoading && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>
+              {dbProducts.length} product{dbProducts.length !== 1 ? "s" : ""} found
+            </span>
+            {isFetching && (
+              <span className="inline-block w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            )}
+          </div>
+        )}
+      </div>
+
       <AddProductModal open={isAddModalOpen} onOpenChange={setIsAddModalOpen} />
+      <ProductDetailsModal
+        open={isDetailsModalOpen}
+        onOpenChange={setIsDetailsModalOpen}
+        product={selectedProduct}
+      />
 
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -66,7 +268,14 @@ export default function AdminProductsClient() {
             const isDraft = product.status === "draft";
 
             return (
-              <Card key={product._id} className="rounded-2xl overflow-hidden border shadow-xs flex flex-col justify-between">
+              <Card
+                key={product._id}
+                className="rounded-2xl overflow-hidden border shadow-xs flex flex-col justify-between cursor-pointer hover:border-primary/50 hover:shadow-md transition-all group"
+                onClick={() => {
+                  setSelectedProduct(product);
+                  setIsDetailsModalOpen(true);
+                }}
+              >
                 <div>
                   <div className="aspect-video bg-muted relative overflow-hidden">
                     {primaryImg ? (
@@ -120,7 +329,10 @@ export default function AdminProductsClient() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => publishMutation.mutate(product._id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        publishMutation.mutate(product._id);
+                      }}
                       disabled={publishMutation.isPending}
                       className="h-7 text-xs rounded-lg gap-1"
                     >
@@ -136,16 +348,26 @@ export default function AdminProductsClient() {
       ) : (
         <div className="text-center py-20 bg-card rounded-3xl border border-dashed space-y-4">
           <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-            <ImageIcon className="w-8 h-8" />
+            {hasActiveFilters ? <SlidersHorizontal className="w-8 h-8" /> : <ImageIcon className="w-8 h-8" />}
           </div>
-          <h2 className="text-2xl font-bold">No Products Found</h2>
+          <h2 className="text-2xl font-bold">
+            {hasActiveFilters ? "No matching products" : "No Products Found"}
+          </h2>
           <p className="text-muted-foreground text-sm max-w-sm mx-auto">
-            Your product catalog is currently empty. Click &quot;Add New Item&quot; to create a product draft and upload images.
+            {hasActiveFilters
+              ? "No products match your current filters. Try adjusting your search or clearing the filters."
+              : "Your product catalog is currently empty. Click \"Add New Item\" to create a product draft and upload images."}
           </p>
           <div className="pt-2">
-            <Button className="rounded-full" onClick={() => setIsAddModalOpen(true)}>
-              <Plus className="w-4 h-4 mr-1.5" /> Add New Item
-            </Button>
+            {hasActiveFilters ? (
+              <Button variant="outline" size="sm" className="rounded-full" onClick={clearAllFilters}>
+                Reset Filters
+              </Button>
+            ) : (
+              <Button className="rounded-full" onClick={() => setIsAddModalOpen(true)}>
+                <Plus className="w-4 h-4 mr-1.5" /> Add New Item
+              </Button>
+            )}
           </div>
         </div>
       )}

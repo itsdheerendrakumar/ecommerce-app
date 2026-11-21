@@ -2,6 +2,7 @@ import { asyncHandler } from "@/lib/api-async-handler";
 import ApiError from "@/lib/api-error";
 import { apiResponse } from "@/lib/api-response";
 import { connectDb } from "@/lib/db";
+import { getOptionalUser } from "@/lib/validateToken";
 import Product, { IProductImage } from "@/models/product.model";
 import mongoose from "mongoose";
 
@@ -15,7 +16,16 @@ export const GET = asyncHandler(async (_request, context) => {
 
   await connectDb();
 
-  const doc = await Product.findOne({ _id: id, status: "published" }).lean();
+  const user = await getOptionalUser();
+  const isAdmin = user?.role === "admin";
+
+  // Draft items will be visible ONLY to the admin user
+  const query: Record<string, any> = { _id: id };
+  if (!isAdmin) {
+    query.status = "published";
+  }
+
+  const doc = await Product.findOne(query).lean();
   if (!doc) {
     throw new ApiError(404, "Product not found");
   }

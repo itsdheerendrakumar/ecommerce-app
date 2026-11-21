@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Heart, Search, ArrowUpDown, SlidersHorizontal, X } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
@@ -10,53 +10,88 @@ import { PublicNavbar } from "@/components/layout/Navbar";
 import { useQuery } from "@tanstack/react-query";
 import { getProductsApi } from "@/lib/client-api/product";
 import { queryKeys } from "@/constants/query-key";
+import { useDebounce } from "@/hooks/useDebounce";
 
 export default function Shop() {
   const { toggleWishlist, wishlist } = useAppStore();
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [sortBy, setSortBy] = useState("featured");
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const { data, isLoading } = useQuery({
-    queryKey: [queryKeys.products],
-    queryFn: () => getProductsApi(),
+  const urlSearch = searchParams.get("search") || "";
+  const urlCategory = searchParams.get("category") || "All";
+  const urlSortBy = searchParams.get("sortBy") || "featured";
+
+  const [searchQuery, setSearchQuery] = useState(urlSearch);
+  const [activeCategory, setActiveCategory] = useState(urlCategory);
+  const [sortBy, setSortBy] = useState(urlSortBy);
+
+  const debouncedSearch = useDebounce(searchQuery, 400);
+
+  // Sync state if URL changes externally (e.g. browser back/forward)
+  useEffect(() => {
+    const s = searchParams.get("search") || "";
+    const c = searchParams.get("category") || "All";
+    const b = searchParams.get("sortBy") || "featured";
+    if (s !== searchQuery && s !== debouncedSearch) setSearchQuery(s);
+    if (c !== activeCategory) setActiveCategory(c);
+    if (b !== sortBy) setSortBy(b);
+  }, [searchParams]);
+
+  // Keep search and category in the URL query parameters
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (debouncedSearch && debouncedSearch.trim()) {
+      params.set("search", debouncedSearch.trim());
+    } else {
+      params.delete("search");
+    }
+
+    if (activeCategory && activeCategory !== "All") {
+      params.set("category", activeCategory);
+    } else {
+      params.delete("category");
+    }
+
+    if (sortBy && sortBy !== "featured") {
+      params.set("sortBy", sortBy);
+    } else {
+      params.delete("sortBy");
+    }
+
+    const newQuery = params.toString();
+    const currentQuery = searchParams.toString();
+    if (newQuery !== currentQuery) {
+      router.replace(newQuery ? `${pathname}?${newQuery}` : pathname, { scroll: false });
+    }
+  }, [debouncedSearch, activeCategory, sortBy, pathname, router, searchParams]);
+
+  const filterParams = useMemo(() => ({
+    category: activeCategory !== "All" ? activeCategory : undefined,
+    search: debouncedSearch || undefined,
+    sortBy: sortBy !== "featured" ? sortBy : undefined,
+  }), [activeCategory, debouncedSearch, sortBy]);
+
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: [queryKeys.products, filterParams],
+    queryFn: () => getProductsApi(filterParams),
   });
 
-  const products = useMemo(() => data?.data?.data || [], [data]);
+  // Fetch unfiltered products once to derive the category list
+  const { data: allData } = useQuery({
+    queryKey: [queryKeys.products, "__all_categories__"],
+    queryFn: () => getProductsApi(),
+    staleTime: 60_000,
+  });
+
+  const allProducts = useMemo(() => allData?.data?.data || [], [allData]);
+  const filteredProducts = useMemo(() => data?.data?.data || [], [data]);
 
   const categories = useMemo(
-    () => ["All", ...Array.from(new Set(products.map((p) => p.category)))],
-    [products]
+    () => ["All", ...Array.from(new Set(allProducts.map((p) => p.category)))],
+    [allProducts]
   );
-
-  const filteredProducts = useMemo(() => {
-    let result = products;
-
-    if (activeCategory !== "All") {
-      result = result.filter((p) => p.category === activeCategory);
-    }
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          (p.shortDescription && p.shortDescription.toLowerCase().includes(q))
-      );
-    }
-
-    if (sortBy === "price-low") {
-      result = [...result].sort((a, b) => a.price - b.price);
-    } else if (sortBy === "price-high") {
-      result = [...result].sort((a, b) => b.price - a.price);
-    } else if (sortBy === "rating") {
-      result = [...result].sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    }
-
-    return result;
-  }, [products, activeCategory, searchQuery, sortBy]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -81,8 +116,8 @@ export default function Shop() {
             {categories.map((cat) => {
               const count =
                 cat === "All"
-                  ? products.length
-                  : products.filter((p) => p.category === cat).length;
+                  ? allProducts.length
+                  : allProducts.filter((p) => p.category === cat).length;
               const isActive = activeCategory === cat;
 
               return (
@@ -172,6 +207,7 @@ export default function Shop() {
               onClick={() => {
                 setActiveCategory("All");
                 setSearchQuery("");
+                setSortBy("featured");
               }}
             >
               Reset Filters
@@ -202,11 +238,15 @@ export default function Shop() {
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
 
-                    {product.originalPrice && (
+                    {product.status === "draft" ? (
+                      <span className="absolute top-3 left-3 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs">
+                        Draft
+                      </span>
+                    ) : product.originalPrice ? (
                       <span className="absolute top-3 left-3 bg-rose-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs">
                         Sale
                       </span>
-                    )}
+                    ) : null}
 
                     <button
                       type="button"

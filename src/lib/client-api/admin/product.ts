@@ -68,8 +68,23 @@ export async function publishProductApi(
   return response.data;
 }
 
-export async function getAdminProductsApi(): Promise<GetAdminProductsResponse> {
-  const response = await instance.get<GetAdminProductsResponse>("/admin/products");
+export interface GetAdminProductsParams {
+  search?: string;
+  status?: string;
+  category?: string;
+  sortBy?: string;
+}
+
+export async function getAdminProductsApi(params?: GetAdminProductsParams): Promise<GetAdminProductsResponse> {
+  const query = new URLSearchParams();
+  if (params?.search && params.search.trim()) query.set("search", params.search.trim());
+  if (params?.status && params.status !== "all") query.set("status", params.status);
+  if (params?.category && params.category !== "All") query.set("category", params.category);
+  if (params?.sortBy) query.set("sortBy", params.sortBy);
+
+  const queryString = query.toString();
+  const url = queryString ? `/admin/products?${queryString}` : "/admin/products";
+  const response = await instance.get<GetAdminProductsResponse>(url);
   return response.data;
 }
 
