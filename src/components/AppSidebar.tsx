@@ -25,7 +25,6 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "./ui/button";
 import { LogOut, LogIn } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
@@ -199,23 +198,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       <SidebarContent>
-        {profileQuery.isLoading ? (
-          <SidebarGroup>
-            <SidebarGroupLabel>{activeConfig.sectionLabel}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {["w-3/4", "w-2/3", "w-4/5", "w-1/2", "w-3/5"].map((widthClass, i) => (
-                  <SidebarMenuItem key={i}>
-                    <div className="flex h-8 items-center gap-2 rounded-md px-2">
-                      <Skeleton className="size-4 rounded-md shrink-0" />
-                      <Skeleton className={cn("h-4 flex-1", widthClass)} />
-                    </div>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ) : activeConfig.sections && activeConfig.sections.length > 0 ? (
+        {activeConfig.sections && activeConfig.sections.length > 0 ? (
           // Grouped navigation (Customer or Guest)
           activeConfig.sections.map((section: NavSection) => (
             <SidebarGroup key={section.label} className="py-1">
