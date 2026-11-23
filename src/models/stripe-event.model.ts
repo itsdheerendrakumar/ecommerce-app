@@ -7,7 +7,7 @@ export interface IStripeWebhookEvent extends Document {
   event_type: string;               // e.g. 'payment_intent.succeeded', 'payment_intent.payment_failed'
   status: WebhookProcessStatus;     // Processing status of the incoming event
   processing_attempts: number;      // How many times processed/retried
-  payload: Record<string, any>;     // Raw event payload stored for forensic audit & replayability
+  payload: Record<string, unknown>; // Raw event payload stored for forensic audit & replayability
   last_error?: string;              // Error stack or message if processing failed
   processed_at?: Date;
   createdAt: Date;
