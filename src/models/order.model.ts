@@ -36,7 +36,6 @@ export interface IOrderAddress {
   city: string;
   state: string;
   pin_code: string;
-  country: string;
 }
 
 export interface IOrderPricing {
@@ -155,12 +154,6 @@ const orderAddressSchema = new Schema<IOrderAddress>(
       required: true,
       trim: true,
     },
-    country: {
-      type: String,
-      required: true,
-      default: "US",
-      trim: true,
-    },
   },
   { _id: false }
 );
@@ -252,7 +245,7 @@ const orderSchema = new Schema<IOrder>(
     currency: {
       type: String,
       required: true,
-      default: "usd",
+      default: "inr",
       lowercase: true,
       trim: true,
     },
