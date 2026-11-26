@@ -40,3 +40,4 @@ export const getDeliveryPartnerDetail = getDeliveryPartnerById;
 
 export * from "./product";
 export * from "./order";
+export * from "./overview";

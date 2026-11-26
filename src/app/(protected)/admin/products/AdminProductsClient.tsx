@@ -125,6 +125,7 @@ export default function AdminProductsClient() {
     onSuccess: () => {
       toast.success("Product published successfully!");
       queryClient.invalidateQueries({ queryKey: [queryKeys.adminProducts] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.adminOverview] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.products] });
     },
     onError: (err: any) => {

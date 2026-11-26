@@ -46,6 +46,7 @@ export function CancelOrderModal({ order, isOpen, onClose }: CancelOrderModalPro
     onSuccess: (_, variables) => {
       toast.success("Order cancelled successfully");
       queryClient.invalidateQueries({ queryKey: [queryKeys.adminOrders] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.adminOverview] });
       queryClient.invalidateQueries({ queryKey: ["adminOrderDetail", variables.orderId] });
       onClose();
     },

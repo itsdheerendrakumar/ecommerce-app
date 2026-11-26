@@ -116,6 +116,7 @@ export default function AdminOrdersClient() {
     onSuccess: (_, variables) => {
       toast.success(`Order status changed to "${variables.status.replace(/_/g, " ")}"`);
       queryClient.invalidateQueries({ queryKey: [queryKeys.adminOrders] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.adminOverview] });
       queryClient.invalidateQueries({ queryKey: ["adminOrderDetail", variables.orderId] });
     },
     onError: (err: unknown) => {

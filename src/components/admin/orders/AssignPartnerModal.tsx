@@ -47,6 +47,7 @@ export function AssignPartnerModal({
     onSuccess: () => {
       toast.success("Delivery partner assigned successfully");
       queryClient.invalidateQueries({ queryKey: [queryKeys.adminOrders] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.adminOverview] });
       queryClient.invalidateQueries({ queryKey: ["adminOrderDetail", orderId] });
       onClose();
     },
