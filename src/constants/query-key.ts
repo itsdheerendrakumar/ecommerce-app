@@ -6,4 +6,5 @@ export const queryKeys = {
   products: "products",
   product: "product",
   customerOrders: "customerOrders",
+  adminOrders: "adminOrders",
 } as const;
