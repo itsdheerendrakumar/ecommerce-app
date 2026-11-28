@@ -28,6 +28,7 @@ import {
 import { getInitials, cn } from "@/lib/utils";
 import { getDeliveryPartnerById } from "@/lib/client-api/admin";
 import { queryKeys } from "@/constants/query-key";
+import { getDutyStatusConfig } from "@/constants/delivery";
 
 interface DeliveryPartnerDetailModalProps {
   open: boolean;
@@ -64,7 +65,7 @@ export function DeliveryPartnerDetailModal({
   const partner = data?.data?.data;
   const dp = partner?.deliveryPartner;
   const displayName = partner?.name || partner?.email?.split("@")[0] || "Delivery Partner";
-  const isOnline = dp?.duty_status === "on-duty";
+  const dutyCfg = getDutyStatusConfig(dp?.duty_status);
   const rating = dp?.total_ratings ?? 0;
 
   return (
@@ -139,19 +140,12 @@ export function DeliveryPartnerDetailModal({
                     </h3>
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full",
-                        isOnline
-                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                          : "bg-zinc-500/10 text-zinc-600 dark:text-zinc-400"
+                        "inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border",
+                        dutyCfg.badgeClass
                       )}
                     >
-                      <span
-                        className={cn(
-                          "w-2 h-2 rounded-full",
-                          isOnline ? "bg-emerald-500" : "bg-zinc-400"
-                        )}
-                      />
-                      {isOnline ? "On Duty" : "Offline"}
+                      <span className={cn("w-2 h-2 rounded-full", dutyCfg.dotClass)} />
+                      {dutyCfg.label}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -261,8 +255,8 @@ export function DeliveryPartnerDetailModal({
                     </div>
                     <div>
                       <span className="text-[11px] text-muted-foreground block">Duty Status</span>
-                      <span className="font-medium text-foreground capitalize">
-                        {dp?.duty_status || "off-duty"}
+                      <span className="font-medium text-foreground">
+                        {dutyCfg.label}
                       </span>
                     </div>
                   </div>

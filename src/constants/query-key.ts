@@ -7,5 +7,8 @@ export const queryKeys = {
   product: "product",
   customerOrders: "customerOrders",
   adminOrders: "adminOrders",
+  adminOrderDetail: "adminOrderDetail",
   adminOverview: "adminOverview",
+  deliveryOrders: "deliveryOrders",
+  deliveryStats: "deliveryStats",
 } as const;

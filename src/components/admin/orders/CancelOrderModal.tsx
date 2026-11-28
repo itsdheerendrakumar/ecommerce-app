@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
@@ -34,12 +34,6 @@ export function CancelOrderModal({ order, isOpen, onClose }: CancelOrderModalPro
   const queryClient = useQueryClient();
   const [reason, setReason] = useState("Cancelled by customer request");
 
-  useEffect(() => {
-    if (isOpen) {
-      setReason("Cancelled by customer request");
-    }
-  }, [isOpen, order?._id]);
-
   const cancelMutation = useMutation({
     mutationFn: ({ orderId, cancelReason }: { orderId: string; cancelReason: string }) =>
       updateAdminOrderStatusApi(orderId, "cancelled", cancelReason),
@@ -47,7 +41,9 @@ export function CancelOrderModal({ order, isOpen, onClose }: CancelOrderModalPro
       toast.success("Order cancelled successfully");
       queryClient.invalidateQueries({ queryKey: [queryKeys.adminOrders] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.adminOverview] });
-      queryClient.invalidateQueries({ queryKey: ["adminOrderDetail", variables.orderId] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.adminOrderDetail, variables.orderId] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.deliveryOrders] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.deliveryStats] });
       onClose();
     },
     onError: (err: unknown) => {
@@ -102,9 +98,8 @@ export function CancelOrderModal({ order, isOpen, onClose }: CancelOrderModalPro
               <p className="font-semibold">This action is irreversible once confirmed.</p>
               <p className="text-[11px] opacity-90">
                 Stock quantities for all ordered items will be automatically restored to inventory.
-                {order.payment_method === "stripe" && order.payment_status === "paid"
-                  ? " Please ensure Stripe refund processing is handled if required."
-                  : ""}
+                {order.payment_status === "paid" &&
+                  " Please ensure Stripe refund processing is handled if required."}
               </p>
             </div>
           </div>

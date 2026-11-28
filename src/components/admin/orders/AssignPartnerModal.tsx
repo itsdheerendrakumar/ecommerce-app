@@ -13,8 +13,11 @@ import { Button } from "@/components/ui/button";
 import { getDeliveryPartners } from "@/lib/client-api/admin";
 import { assignDeliveryPartnerApi } from "@/lib/client-api/admin/order";
 import { queryKeys } from "@/constants/query-key";
+import { getDutyStatusConfig } from "@/constants/delivery";
+import type { DeliveryPartnerUserItem } from "@/lib/client-api/admin/types";
 import { Truck, Check, Loader2, AlertCircle, Phone, UserCheck } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface AssignPartnerModalProps {
   orderId: string | null;
@@ -40,7 +43,17 @@ export function AssignPartnerModal({
     enabled: isOpen,
   });
 
-  const partners = response?.data?.data || [];
+  const rawPartners: DeliveryPartnerUserItem[] = response?.data?.data || [];
+  const dutyOrder: Record<string, number> = {
+    "on-duty": 0,
+    "in-delivery": 1,
+    "off-duty": 2,
+  };
+  const partners = [...rawPartners].sort((a, b) => {
+    const rankA = dutyOrder[a.deliveryPartner?.duty_status || "off-duty"] ?? 2;
+    const rankB = dutyOrder[b.deliveryPartner?.duty_status || "off-duty"] ?? 2;
+    return rankA - rankB;
+  });
 
   const assignMutation = useMutation({
     mutationFn: (partnerId: string) => assignDeliveryPartnerApi(orderId!, partnerId),
@@ -48,11 +61,15 @@ export function AssignPartnerModal({
       toast.success("Delivery partner assigned successfully");
       queryClient.invalidateQueries({ queryKey: [queryKeys.adminOrders] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.adminOverview] });
-      queryClient.invalidateQueries({ queryKey: ["adminOrderDetail", orderId] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.adminOrderDetail, orderId] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.deliveryOrders] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.deliveryStats] });
       onClose();
     },
-    onError: (error: any) => {
-      const msg = error?.response?.data?.message || error?.message || "Failed to assign delivery partner";
+    onError: (err: unknown) => {
+      const errObj = err as { response?: { data?: { message?: string } }; message?: string };
+      const msg =
+        errObj?.response?.data?.message || errObj?.message || "Failed to assign delivery partner";
       toast.error(msg);
     },
   });
@@ -95,9 +112,11 @@ export function AssignPartnerModal({
 
           {!isLoading && partners.length > 0 && (
             <div className="space-y-2">
-              {partners.map((p: any) => {
-                const partnerUserId = p._id || p.user_id?._id || p.user_id;
+              {partners.map((p) => {
+                const partnerUserId = p._id || p.id || "";
                 const isSelected = selectedPartnerId === partnerUserId;
+                const dutyCfg = getDutyStatusConfig(p.deliveryPartner?.duty_status);
+                const completedCount = p.deliveryPartner?.completed_deliveries ?? 0;
 
                 return (
                   <button
@@ -114,14 +133,25 @@ export function AssignPartnerModal({
                       <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300 font-bold flex items-center justify-center text-sm shrink-0">
                         {p.name?.slice(0, 1)?.toUpperCase() || "R"}
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold truncate text-foreground">{p.name}</p>
+                      <div className="min-w-0 space-y-0.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-xs font-bold truncate text-foreground">{p.name}</p>
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0",
+                              dutyCfg.badgeClass
+                            )}
+                          >
+                            <span className={cn("w-1.5 h-1.5 rounded-full", dutyCfg.dotClass)} />
+                            {dutyCfg.label}
+                          </span>
+                        </div>
                         <p className="text-[11px] text-muted-foreground flex items-center gap-1 font-mono">
                           <Phone className="w-3 h-3" /> {p.phone || "No phone"}
                         </p>
                         {p.deliveryPartner?.vehicle_number && (
-                          <span className="text-[10px] text-muted-foreground font-mono">
-                            Vehicle: {p.deliveryPartner.vehicle_number}
+                          <span className="text-[10px] text-muted-foreground font-mono block">
+                            Vehicle: {p.deliveryPartner.vehicle_number} • {completedCount} delivered
                           </span>
                         )}
                       </div>

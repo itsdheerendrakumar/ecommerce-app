@@ -1,5 +1,6 @@
 import { signupSchema, loginSchema } from "@/lib/validations/auth";
 import type { z } from "zod";
+import type { IDeliveryPartnerProfile } from "../admin/types";
 
 export type SignupPayload = z.infer<typeof signupSchema>;
 export type LoginPayload = z.infer<typeof loginSchema>;
@@ -34,6 +35,7 @@ export interface UserProfile {
   profile_picture?: string;
   dob?: string | Date;
   phone?: string;
+  deliveryPartner?: IDeliveryPartnerProfile | null;
   createdAt?: string | Date;
   updatedAt?: string | Date;
 }

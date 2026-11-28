@@ -6,6 +6,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateProfile, changePassword } from "@/lib/client-api/common";
 import { queryKeys } from "@/constants/query-key";
+import { getDutyStatusConfig } from "@/constants/delivery";
 import { PasswordStrengthMeter } from "@/components/auth/PasswordStrengthMeter";
 import { evaluatePasswordStrength } from "@/lib/validations/auth";
 import { Button } from "@/components/ui/button";
@@ -717,41 +718,104 @@ export function ProfileSettings({ defaultTab = "personal", role: forcedRole }: P
           {/* Delivery Courier Info Tab */}
           {isDelivery && activeTab === "courier" && (
             <Card className="rounded-2xl border shadow-xs">
-              <CardHeader>
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <CardTitle className="text-lg">Courier Account & Vehicle Details</CardTitle>
+                {(() => {
+                  const dutyCfg = getDutyStatusConfig(user?.deliveryPartner?.duty_status);
+                  return (
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border w-fit",
+                        dutyCfg.badgeClass
+                      )}
+                    >
+                      <span className={cn("w-2 h-2 rounded-full", dutyCfg.dotClass)} />
+                      {dutyCfg.label}
+                    </span>
+                  );
+                })()}
               </CardHeader>
-              <CardContent className="space-y-4 text-sm">
+              <CardContent className="space-y-5 text-sm">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-3.5 rounded-xl border bg-muted/20">
-                    <p className="text-xs text-muted-foreground">Courier Name</p>
+                    <p className="text-xs text-muted-foreground">Vehicle Name & Plate</p>
                     <p className="font-semibold text-foreground mt-0.5">
-                      {user?.name || "Rider Partner"}
+                      {user?.deliveryPartner?.vehicle_name || "Not assigned"}
+                      {user?.deliveryPartner?.vehicle_number &&
+                        ` • ${user.deliveryPartner.vehicle_number}`}
                     </p>
                   </div>
+
                   <div className="p-3.5 rounded-xl border bg-muted/20">
-                    <p className="text-xs text-muted-foreground">Registered Email</p>
+                    <p className="text-xs text-muted-foreground">Operating Area</p>
                     <p className="font-semibold text-foreground mt-0.5">
-                      {user?.email}
+                      {user?.deliveryPartner?.address
+                        ? `${user.deliveryPartner.address.city} (${user.deliveryPartner.address.pin_code})`
+                        : "Not set"}
                     </p>
                   </div>
+
                   <div className="p-3.5 rounded-xl border bg-muted/20">
-                    <p className="text-xs text-muted-foreground">Vehicle Type</p>
-                    <p className="font-semibold text-foreground mt-0.5">
-                      Motorcycle / E-Bike
+                    <p className="text-xs text-muted-foreground">Driving License</p>
+                    <p className="font-mono font-semibold text-foreground mt-0.5">
+                      {user?.deliveryPartner?.license_number || "N/A"}
                     </p>
                   </div>
+
                   <div className="p-3.5 rounded-xl border bg-muted/20">
-                    <p className="text-xs text-muted-foreground">Partner Status</p>
+                    <p className="text-xs text-muted-foreground">Aadhaar Verification</p>
+                    <p className="font-mono font-semibold text-foreground mt-0.5">
+                      {user?.deliveryPartner?.aadhar_number
+                        ? `XXXX XXXX ${user.deliveryPartner.aadhar_number.slice(-4)}`
+                        : "N/A"}
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl border bg-muted/20">
+                    <p className="text-xs text-muted-foreground">Bank Payout Account</p>
+                    <p className="font-semibold text-foreground mt-0.5">
+                      {user?.deliveryPartner?.bank_name || "N/A"}
+                      {user?.deliveryPartner?.account_number &&
+                        ` • •••• ${user.deliveryPartner.account_number.slice(-4)}`}
+                    </p>
+                    {user?.deliveryPartner?.ifsc_code && (
+                      <p className="text-[11px] font-mono text-muted-foreground mt-0.5">
+                        IFSC: {user.deliveryPartner.ifsc_code}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="p-3.5 rounded-xl border bg-muted/20">
+                    <p className="text-xs text-muted-foreground">Emergency Contact</p>
+                    <p className="font-semibold text-foreground mt-0.5">
+                      {user?.deliveryPartner?.emergency_contact_name || "N/A"}
+                    </p>
+                    {user?.deliveryPartner?.emergency_contact_phone && (
+                      <p className="text-xs font-mono text-muted-foreground mt-0.5">
+                        {user.deliveryPartner.emergency_contact_phone}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="p-3.5 rounded-xl border bg-muted/20">
+                    <p className="text-xs text-muted-foreground">Completed Deliveries</p>
+                    <p className="font-bold text-foreground mt-0.5">
+                      {user?.deliveryPartner?.completed_deliveries ?? 0} order(s)
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl border bg-muted/20">
+                    <p className="text-xs text-muted-foreground">Partner Verification</p>
                     <p className="font-semibold text-emerald-600 mt-0.5 flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Active & Verified
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      {user?.deliveryPartner ? "Verified by Store Admin" : "Pending Onboarding"}
                     </p>
                   </div>
                 </div>
-                <div className="pt-2">
-                  <Button className="rounded-xl font-semibold">
-                    Update Courier Info
-                  </Button>
-                </div>
+
+                <p className="text-xs text-muted-foreground border-t pt-3">
+                  To update your vehicle, KYC documents, or bank payout account, contact your store administrator.
+                </p>
               </CardContent>
             </Card>
           )}

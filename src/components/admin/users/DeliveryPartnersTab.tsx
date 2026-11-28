@@ -42,6 +42,7 @@ import { DeliveryPartnerDetailModal } from "./DeliveryPartnerDetailModal";
 import { useQuery } from "@tanstack/react-query";
 import { getDeliveryPartners } from "@/lib/client-api/admin";
 import { queryKeys } from "@/constants/query-key";
+import { getDutyStatusConfig } from "@/constants/delivery";
 import type { DeliveryPartnerUserItem } from "@/lib/client-api/admin/types";
 
 function formatJoinedDate(dateStr?: string): string {
@@ -144,12 +145,19 @@ export function DeliveryPartnersTab() {
   const onDutyCount = deliveryPartners.filter(
     (p) => p.deliveryPartner?.duty_status === "on-duty"
   ).length;
+  const inDeliveryCount = deliveryPartners.filter(
+    (p) => p.deliveryPartner?.duty_status === "in-delivery"
+  ).length;
+  const offDutyCount = Math.max(
+    0,
+    deliveryPartners.length - onDutyCount - inDeliveryCount
+  );
 
   const hasActiveFilters = Boolean(urlSearch || startDate || endDate);
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card className="rounded-xl border shadow-2xs">
           <CardContent className="p-3.5 flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
@@ -176,15 +184,29 @@ export function DeliveryPartnersTab() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl border shadow-2xs col-span-2 sm:col-span-1">
+        <Card className="rounded-xl border shadow-2xs">
+          <CardContent className="p-3.5 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+              <Truck className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-[11px] font-medium text-muted-foreground">In Delivery (Page)</p>
+              <p className="text-lg font-bold tracking-tight text-sky-600 dark:text-sky-400">
+                {inDeliveryCount}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-xl border shadow-2xs">
           <CardContent className="p-3.5 flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 flex items-center justify-center shrink-0">
               <Bike className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[11px] font-medium text-muted-foreground">Offline (Page)</p>
+              <p className="text-[11px] font-medium text-muted-foreground">Off Duty (Page)</p>
               <p className="text-lg font-bold tracking-tight">
-                {Math.max(0, deliveryPartners.length - onDutyCount)}
+                {offDutyCount}
               </p>
             </div>
           </CardContent>
@@ -380,7 +402,7 @@ export function DeliveryPartnersTab() {
             const partnerId = partner._id || partner.id;
             const dp = partner.deliveryPartner;
             const displayName = partner.name || partner.email.split("@")[0] || "Delivery Partner";
-            const isOnline = dp?.duty_status === "on-duty";
+            const dutyCfg = getDutyStatusConfig(dp?.duty_status);
             const rating = dp?.total_ratings ?? 0;
             const city = dp?.address?.city;
 
@@ -402,19 +424,12 @@ export function DeliveryPartnersTab() {
                           </p>
                           <span
                             className={cn(
-                              "inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full",
-                              isOnline
-                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                                : "bg-zinc-500/10 text-zinc-600 dark:text-zinc-400"
+                              "inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border",
+                              dutyCfg.badgeClass
                             )}
                           >
-                            <span
-                              className={cn(
-                                "w-1.5 h-1.5 rounded-full",
-                                isOnline ? "bg-emerald-500" : "bg-zinc-400"
-                              )}
-                            />
-                            {isOnline ? "On Duty" : "Offline"}
+                            <span className={cn("w-1.5 h-1.5 rounded-full", dutyCfg.dotClass)} />
+                            {dutyCfg.label}
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground truncate mt-0.5">
@@ -502,7 +517,7 @@ export function DeliveryPartnersTab() {
                 const partnerId = partner._id || partner.id;
                 const dp = partner.deliveryPartner;
                 const displayName = partner.name || partner.email.split("@")[0] || "Delivery Partner";
-                const isOnline = dp?.duty_status === "on-duty";
+                const dutyCfg = getDutyStatusConfig(dp?.duty_status);
                 const rating = dp?.total_ratings ?? 0;
 
                 return (
@@ -554,19 +569,12 @@ export function DeliveryPartnersTab() {
                     <TableCell className="text-center">
                       <span
                         className={cn(
-                          "inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full",
-                          isOnline
-                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                            : "bg-zinc-500/10 text-zinc-600 dark:text-zinc-400"
+                          "inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border",
+                          dutyCfg.badgeClass
                         )}
                       >
-                        <span
-                          className={cn(
-                            "w-1.5 h-1.5 rounded-full",
-                            isOnline ? "bg-emerald-500" : "bg-zinc-400"
-                          )}
-                        />
-                        {isOnline ? "On Duty" : "Offline"}
+                        <span className={cn("w-1.5 h-1.5 rounded-full", dutyCfg.dotClass)} />
+                        {dutyCfg.label}
                       </span>
                     </TableCell>
 

@@ -1,4 +1,5 @@
 import type { OrderStatus } from "@/models/order.model";
+import { DUTY_STATUS_CONFIG } from "@/constants/delivery";
 
 export function formatCurrency(amount: number, currency: string = "inr"): string {
   const isInr = currency?.toLowerCase() === "inr";
@@ -82,25 +83,4 @@ export const ORDER_STATUS_STYLE_MAP: Record<
   },
 };
 
-export const DUTY_STATUS_STYLE_MAP: Record<
-  "on-duty" | "in-delivery" | "off-duty",
-  { label: string; dotClass: string; badgeClass: string }
-> = {
-  "on-duty": {
-    label: "On Duty",
-    dotClass: "bg-emerald-500",
-    badgeClass:
-      "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60",
-  },
-  "in-delivery": {
-    label: "In Delivery",
-    dotClass: "bg-sky-500",
-    badgeClass:
-      "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-400 dark:border-sky-800/60",
-  },
-  "off-duty": {
-    label: "Off Duty",
-    dotClass: "bg-muted-foreground/60",
-    badgeClass: "bg-muted text-muted-foreground border-border",
-  },
-};
+export const DUTY_STATUS_STYLE_MAP = DUTY_STATUS_CONFIG;

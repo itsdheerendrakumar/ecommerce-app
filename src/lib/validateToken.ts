@@ -40,3 +40,19 @@ export async function validateToken(): Promise<DecodedTokenPayload["data"]> {
 
   return decoded.data;
 }
+
+export async function validateRoleToken(
+  allowedRoles:
+    | DecodedTokenPayload["data"]["role"]
+    | Array<DecodedTokenPayload["data"]["role"]>,
+  errorMessage = "Unauthorized access"
+): Promise<DecodedTokenPayload["data"]> {
+  const decoded = await validateToken();
+  const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+
+  if (!roles.includes(decoded.role)) {
+    throw new ApiError(403, errorMessage);
+  }
+
+  return decoded;
+}

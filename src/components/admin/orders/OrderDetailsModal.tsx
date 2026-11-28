@@ -15,6 +15,7 @@ import {
   getOrderItemImages,
   ResolvedOrderItemImage,
 } from "@/lib/client-api/admin/order";
+import { queryKeys } from "@/constants/query-key";
 import {
   Package,
   Truck,
@@ -62,7 +63,7 @@ export function OrderDetailsModal({
   }, [isOpen, orderId]);
 
   const { data: response, isLoading } = useQuery({
-    queryKey: ["adminOrderDetail", orderId],
+    queryKey: [queryKeys.adminOrderDetail, orderId],
     queryFn: () => getAdminOrderDetailApi(orderId!),
     enabled: !!orderId && isOpen,
   });
@@ -207,16 +208,19 @@ export function OrderDetailsModal({
                   </div>
                 </div>
 
-                {!["delivered", "cancelled", "returned"].includes(order.order_status) && onAssignPartner && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="rounded-xl h-8 text-xs font-semibold"
-                    onClick={() => onAssignPartner(order)}
-                  >
-                    Change
-                  </Button>
-                )}
+                {!["out_for_delivery", "delivered", "cancelled", "returned"].includes(
+                  order.order_status
+                ) &&
+                  onAssignPartner && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl h-8 text-xs font-semibold"
+                      onClick={() => onAssignPartner(order)}
+                    >
+                      Change
+                    </Button>
+                  )}
               </div>
             )}
 
@@ -226,16 +230,19 @@ export function OrderDetailsModal({
                   <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
                   <span>No delivery partner assigned to this order yet.</span>
                 </div>
-                {!["delivered", "cancelled", "returned"].includes(order.order_status) && onAssignPartner && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="rounded-xl h-8 text-xs font-semibold text-amber-700 border-amber-300 dark:text-amber-300 dark:border-amber-800"
-                    onClick={() => onAssignPartner(order)}
-                  >
-                    <Truck className="w-3.5 h-3.5 mr-1 text-amber-600" /> Assign Rider
-                  </Button>
-                )}
+                {!["out_for_delivery", "delivered", "cancelled", "returned"].includes(
+                  order.order_status
+                ) &&
+                  onAssignPartner && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="rounded-xl h-8 text-xs font-semibold text-amber-700 border-amber-300 dark:text-amber-300 dark:border-amber-800"
+                      onClick={() => onAssignPartner(order)}
+                    >
+                      <Truck className="w-3.5 h-3.5 mr-1 text-amber-600" /> Assign Rider
+                    </Button>
+                  )}
               </div>
             )}
 

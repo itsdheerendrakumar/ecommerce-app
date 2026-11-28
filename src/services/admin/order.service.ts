@@ -6,6 +6,7 @@ import Order, { IOrder, OrderStatus } from "@/models/order.model";
 import PaymentTransaction from "@/models/payment.model";
 import Product from "@/models/product.model";
 import User from "@/models/user.model";
+import { syncDeliveryPartnerDutyStatus } from "@/services/delivery/rider-state.service";
 
 export interface GetAdminOrdersParams {
   search?: string;
@@ -37,11 +38,11 @@ export interface GetAdminOrdersResult {
 }
 
 const VALID_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  pending: ["confirmed", "cancelled"],
+  pending: ["cancelled"],
   confirmed: ["processing", "cancelled"],
   processing: ["shipped", "cancelled"],
-  shipped: ["out_for_delivery", "cancelled", "returned"],
-  out_for_delivery: ["delivered", "returned", "cancelled"],
+  shipped: ["cancelled", "returned"],
+  out_for_delivery: ["cancelled", "returned"],
   delivered: ["returned"],
   cancelled: [],
   returned: [],
@@ -228,26 +229,30 @@ export async function updateAdminOrderStatusService(
 
   const allowedNextStatuses = VALID_STATUS_TRANSITIONS[currentStatus] || [];
   if (!allowedNextStatuses.includes(newStatus)) {
+    if (newStatus === "out_for_delivery" || newStatus === "delivered") {
+      throw new ApiError(
+        400,
+        `Status "${newStatus.replace(/_/g, " ")}" can only be updated by the assigned delivery partner.`
+      );
+    }
     throw new ApiError(
       400,
       `Invalid order status progression. Cannot transition from "${currentStatus}" to "${newStatus}".`
     );
   }
 
-  if (["shipped", "out_for_delivery", "delivered"].includes(newStatus)) {
-    if (!order.delivery_partner_id) {
-      throw new ApiError(
-        400,
-        `Cannot change status to "${newStatus.replace(/_/g, " ")}". A delivery partner must be assigned before dispatching or delivering.`
-      );
-    }
+  if (newStatus === "shipped" && !order.delivery_partner_id) {
+    throw new ApiError(
+      400,
+      'Cannot change status to "shipped". A delivery partner must be assigned before dispatching.'
+    );
   }
 
-  if (["processing", "shipped", "out_for_delivery", "delivered"].includes(newStatus)) {
-    if (order.payment_method === "stripe" && order.payment_status !== "paid") {
+  if (newStatus === "processing" || newStatus === "shipped") {
+    if (order.payment_status !== "paid") {
       throw new ApiError(
         400,
-        `Cannot fulfill unpaid order. Stripe payment status is currently "${order.payment_status}".`
+        `Cannot fulfill unpaid order. Payment status is currently "${order.payment_status}".`
       );
     }
   }
@@ -271,20 +276,21 @@ export async function updateAdminOrderStatusService(
     }
   }
 
-  if (order.payment_method === "cod" && newStatus === "delivered") {
-    order.payment_status = "paid";
-    order.paid_at = new Date();
-  }
-
   order.order_status = newStatus;
 
   if (newStatus === "shipped" && !order.shipped_at) {
     order.shipped_at = new Date();
-  } else if (newStatus === "delivered" && !order.delivered_at) {
-    order.delivered_at = new Date();
   }
 
   await order.save();
+
+  if (
+    order.delivery_partner_id &&
+    (newStatus === "cancelled" || newStatus === "returned")
+  ) {
+    await syncDeliveryPartnerDutyStatus(order.delivery_partner_id);
+  }
+
   return order;
 }
 
@@ -316,10 +322,14 @@ export async function assignDeliveryPartnerService(
     throw new ApiError(400, "Cannot assign inactive or suspended delivery partner");
   }
 
-  if (["delivered", "cancelled", "returned"].includes(order.order_status)) {
+  if (
+    ["out_for_delivery", "delivered", "cancelled", "returned"].includes(
+      order.order_status
+    )
+  ) {
     throw new ApiError(
       400,
-      `Cannot assign driver to an order that is already ${order.order_status}.`
+      `Cannot assign driver to an order that is already ${order.order_status.replace(/_/g, " ")}.`
     );
   }
 

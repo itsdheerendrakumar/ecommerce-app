@@ -487,9 +487,12 @@ export async function getAdminOverviewService(
       },
     ]),
 
-    // 15. Active Orders Queue needing admin attention / dispatch
+    // 15. Active Orders Queue needing store fulfillment / dispatch attention
     Order.find({
-      order_status: { $in: ["pending", "confirmed", "processing", "shipped", "out_for_delivery"] },
+      $or: [
+        { order_status: { $in: ["pending", "confirmed", "processing"] } },
+        { order_status: "shipped", delivery_partner_id: null },
+      ],
     })
       .populate("delivery_partner_id", "name phone")
       .sort({ createdAt: -1 })

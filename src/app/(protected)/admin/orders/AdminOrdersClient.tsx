@@ -35,7 +35,6 @@ import {
   UserCheck,
   DollarSign,
   TrendingUp,
-  AlertTriangle,
   Ban,
 } from "lucide-react";
 import { format } from "date-fns";
@@ -117,7 +116,9 @@ export default function AdminOrdersClient() {
       toast.success(`Order status changed to "${variables.status.replace(/_/g, " ")}"`);
       queryClient.invalidateQueries({ queryKey: [queryKeys.adminOrders] });
       queryClient.invalidateQueries({ queryKey: [queryKeys.adminOverview] });
-      queryClient.invalidateQueries({ queryKey: ["adminOrderDetail", variables.orderId] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.adminOrderDetail, variables.orderId] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.deliveryOrders] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.deliveryStats] });
     },
     onError: (err: unknown) => {
       const errObj = err as { response?: { data?: { message?: string } }; message?: string };
@@ -491,7 +492,7 @@ export default function AdminOrdersClient() {
                             variant="outline"
                             size="sm"
                             className="h-9 rounded-xl text-xs border-purple-200 bg-purple-50/50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-300 dark:border-purple-800"
-                            disabled={isTerminalStatus}
+                            disabled={isTerminalStatus || order.order_status === "out_for_delivery"}
                             onClick={(e) => {
                               e.stopPropagation();
                               setAssignModalOrder(order);
@@ -502,19 +503,21 @@ export default function AdminOrdersClient() {
                           </Button>
                         )}
 
-                      {!hasAssignedRiderObject && !isTerminalStatus && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-9 rounded-xl text-xs text-amber-700 bg-amber-50/50 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800 hover:bg-amber-100"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setAssignModalOrder(order);
-                          }}
-                        >
-                          <UserCheck className="w-3.5 h-3.5 mr-1.5 text-amber-600" /> Assign Rider
-                        </Button>
-                      )}
+                      {!hasAssignedRiderObject &&
+                        !isTerminalStatus &&
+                        order.order_status !== "out_for_delivery" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-9 rounded-xl text-xs text-amber-700 bg-amber-50/50 border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800 hover:bg-amber-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAssignModalOrder(order);
+                            }}
+                          >
+                            <UserCheck className="w-3.5 h-3.5 mr-1.5 text-amber-600" /> Assign Rider
+                          </Button>
+                        )}
 
                       <Button
                         variant="ghost"
@@ -528,21 +531,7 @@ export default function AdminOrdersClient() {
                         <Eye className="w-3.5 h-3.5 mr-1" /> View
                       </Button>
 
-                      {order.order_status === "pending" && order.payment_method === "cod" && (
-                        <Button
-                          size="sm"
-                          className="h-9 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
-                          disabled={statusMutation.isPending}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            statusMutation.mutate({ orderId: order._id, status: "confirmed" });
-                          }}
-                        >
-                          Confirm Order
-                        </Button>
-                      )}
-
-                      {order.order_status === "pending" && order.payment_method !== "cod" && (
+                      {order.order_status === "pending" && (
                         <span className="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center px-2 py-1">
                           <Clock className="w-3.5 h-3.5 mr-1" /> Awaiting Payment
                         </span>
@@ -592,17 +581,9 @@ export default function AdminOrdersClient() {
                       )}
 
                       {order.order_status === "shipped" && hasRider && (
-                        <Button
-                          size="sm"
-                          className="h-9 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white shadow-xs"
-                          disabled={statusMutation.isPending}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            statusMutation.mutate({ orderId: order._id, status: "out_for_delivery" });
-                          }}
-                        >
-                          Out for Delivery
-                        </Button>
+                        <span className="text-xs font-bold text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 rounded-xl flex items-center px-3 py-1.5">
+                          <Clock className="w-3.5 h-3.5 mr-1.5" /> Awaiting Rider Pickup
+                        </span>
                       )}
 
                       {order.order_status === "shipped" && !hasRider && (
@@ -620,33 +601,10 @@ export default function AdminOrdersClient() {
                         </Button>
                       )}
 
-                      {order.order_status === "out_for_delivery" && hasRider && (
-                        <Button
-                          size="sm"
-                          className="h-9 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
-                          disabled={statusMutation.isPending}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            statusMutation.mutate({ orderId: order._id, status: "delivered" });
-                          }}
-                        >
-                          Mark Delivered
-                        </Button>
-                      )}
-
-                      {order.order_status === "out_for_delivery" && !hasRider && (
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="h-9 rounded-xl text-xs font-bold shadow-xs"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toast.info("Please assign a delivery partner for this order");
-                            setAssignModalOrder(order);
-                          }}
-                        >
-                          <Truck className="w-3.5 h-3.5 mr-1.5" /> Assign Driver
-                        </Button>
+                      {order.order_status === "out_for_delivery" && (
+                        <span className="text-xs font-bold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/60 rounded-xl flex items-center px-3 py-1.5">
+                          <Truck className="w-3.5 h-3.5 mr-1.5" /> Out with Rider
+                        </span>
                       )}
 
                       {order.order_status === "delivered" && (
@@ -737,6 +695,7 @@ export default function AdminOrdersClient() {
 
       {assignModalOrder && (
         <AssignPartnerModal
+          key={assignModalOrder._id}
           orderId={assignModalOrder._id}
           orderNumber={assignModalOrder.order_number}
           currentPartnerId={
@@ -751,6 +710,7 @@ export default function AdminOrdersClient() {
 
       {cancelModalOrder && (
         <CancelOrderModal
+          key={cancelModalOrder._id}
           order={cancelModalOrder}
           isOpen={!!cancelModalOrder}
           onClose={() => setCancelModalOrder(null)}
