@@ -381,7 +381,7 @@ export function DeliveryPartnersTab() {
             const dp = partner.deliveryPartner;
             const displayName = partner.name || partner.email.split("@")[0] || "Delivery Partner";
             const isOnline = dp?.duty_status === "on-duty";
-            const rating = dp?.total_ratings || 5.0;
+            const rating = dp?.total_ratings ?? 0;
             const city = dp?.address?.city;
 
             return (
@@ -503,7 +503,7 @@ export function DeliveryPartnersTab() {
                 const dp = partner.deliveryPartner;
                 const displayName = partner.name || partner.email.split("@")[0] || "Delivery Partner";
                 const isOnline = dp?.duty_status === "on-duty";
-                const rating = dp?.total_ratings || 5.0;
+                const rating = dp?.total_ratings ?? 0;
 
                 return (
                   <TableRow key={partnerId} className="hover:bg-muted/30 transition-colors">

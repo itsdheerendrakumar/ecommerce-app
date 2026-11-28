@@ -65,7 +65,7 @@ export function DeliveryPartnerDetailModal({
   const dp = partner?.deliveryPartner;
   const displayName = partner?.name || partner?.email?.split("@")[0] || "Delivery Partner";
   const isOnline = dp?.duty_status === "on-duty";
-  const rating = dp?.total_ratings || 5.0;
+  const rating = dp?.total_ratings ?? 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
