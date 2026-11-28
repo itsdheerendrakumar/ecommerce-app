@@ -13,6 +13,9 @@ import {
   ArrowRight,
   Loader2,
   AlertCircle,
+  ShieldCheck,
+  User,
+  Truck,
 } from "lucide-react";
 import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
 import { Label } from "@/components/ui/label";
@@ -23,6 +26,27 @@ import type { LoginPayload } from "@/lib/client-api/auth/types";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/useAppStore";
 import { toast } from "sonner";
+
+const ROLE_CREDENTIALS = [
+  {
+    role: "Admin",
+    email: "testadmin1@yopmail.com",
+    password: "Testadmin1@yopmail.com",
+    icon: ShieldCheck,
+  },
+  {
+    role: "Customer",
+    email: "testcustomer1@yopmail.com",
+    password: "Testcustomer1@yopmail.com",
+    icon: User,
+  },
+  {
+    role: "Delivery Partner",
+    email: "testdeliverpartner@yopmail.com",
+    password: "L!qG%OX9Wb",
+    icon: Truck,
+  },
+] as const;
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -54,6 +78,12 @@ export function LoginForm() {
   })
 
   const rememberMe = watch("rememberMe");
+  const currentEmail = watch("email");
+
+  const handleSelectRole = (email: string, password: string) => {
+    setValue("email", email, { shouldValidate: true, shouldDirty: true });
+    setValue("password", password, { shouldValidate: true, shouldDirty: true });
+  };
 
   const onSubmit = async (data: LoginFormData) => {
     loginMutation.mutate(data)
@@ -78,6 +108,41 @@ export function LoginForm() {
         <p className="text-sm text-muted-foreground">
           Enter your credentials to access your StoreFront account
         </p>
+      </div>
+
+      <div className="rounded-xl border border-border/80 bg-muted/30 p-3.5 space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs font-semibold text-foreground">
+            Demo Credentials
+          </span>
+          <span className="text-[11px] text-muted-foreground">
+            Select a role to autofill
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {ROLE_CREDENTIALS.map((cred) => {
+            const Icon = cred.icon;
+            const isSelected = currentEmail === cred.email;
+
+            return (
+              <button
+                key={cred.role}
+                type="button"
+                disabled={loginMutation.isPending}
+                onClick={() => handleSelectRole(cred.email, cred.password)}
+                className={`flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-semibold transition-all cursor-pointer disabled:opacity-50 ${
+                  isSelected
+                    ? "border-primary bg-primary text-primary-foreground shadow-xs"
+                    : "border-border bg-background hover:bg-muted text-foreground"
+                }`}
+              >
+                <Icon className="size-3.5 shrink-0" />
+                <span className="truncate">{cred.role}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
